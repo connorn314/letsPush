@@ -11,12 +11,16 @@ const Stack = createNativeStackNavigator();
 export const store = createStore();
 
 import { NativeWindStyleSheet } from "nativewind";
+import AddWorkoutScreen from './app/screens/addWorkout';
+// import { usePushNotifications } from './app/storage/usePushNotifications';
 
 NativeWindStyleSheet.setOutput({
   default: "native",
 });
 
 export default function App() {
+
+
   return (
     <Provider store={store}>
       <SafeAreaProvider>
@@ -26,7 +30,7 @@ export default function App() {
                 <Stack.Navigator >
                     {/* <Stack.Screen options={{headerShown: false}} name="Login" component={Login} /> */}
                     <Stack.Screen options={{headerShown: false}} name="Home" component={HomeScreen} />
-                    {/* <Stack.Screen name="Tour Details" component={TourDetails} /> */}
+                    <Stack.Screen name="Add Workout" component={AddWorkoutScreen} />
                 </Stack.Navigator>
               </NavigationContainer>
             </BottomSheetModalProvider>

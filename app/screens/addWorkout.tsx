@@ -1,36 +1,20 @@
-import { View, Text, KeyboardAvoidingView, TextInput, TouchableOpacity } from "react-native";
-import React, { useState } from "react";
 
-import { FIREBASE_AUTH } from "../../firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-// import { useAtom } from "jotai";
-// import { userState } from "../storage/atomStorage";
-// import {SocialIcon, SocialMediaType} from "@rneui/themed";
-import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
-import SpinLoader from "./spinLoader";
-import { User } from "../types/user";
+import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 
-const SignIn = ({onClose}:{onClose: () => void}) => {
+const AddWorkoutScreen = ({navigation}: any) => {
 
-    // const appImage = require('../../assets/images/icon.png');
-    // const [user, setUser] = useAtom(userState);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-
-    const handleSignUp = async () => {
-        setLoading(true);
-        try {
-            await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password)
-        } catch (err: any) {
-            alert(err.message)
-        } finally {
-            setLoading(false);
-        }
-    }
 
     return (
-        <View className={`h-full w-full px-4 flex justify-start items-center mt-10`}>
+        <LinearGradient
+            // Background Linear Gradient
+            colors={['#ffffff', '#ffffff', '#a538ff']}
+            end={{ x: 0.1, y: 0.1 }}
+            start={{ x: 0.9, y: 1 }}
+            style={{height: "100%", width: "100%", alignItems: "center", justifyContent: "center", paddingHorizontal: 20}}
+            >
+            <SafeAreaView>
             <View className="h-auto w-full flex justify-center items-center overflow-scroll">
                 <KeyboardAvoidingView behavior="padding" className=" w-full px-4 flex justify-center items-center">
                     <View className=" w-full flex justify-center items-center">
@@ -53,9 +37,9 @@ const SignIn = ({onClose}:{onClose: () => void}) => {
                                     placeholderTextColor={"gray"}
                                     value={email}
                                     onChangeText={(text) => setEmail(text)} />
-                                <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
+                                {/* <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
                                     <MaterialCommunityIcons name="email-outline" className="absolute left-0" size={24} color="black" />
-                                </View>
+                                </View> */}
                             </View>
                             
                             <View className="w-full relative ">
@@ -66,10 +50,11 @@ const SignIn = ({onClose}:{onClose: () => void}) => {
                                     value={password}
                                     placeholderTextColor={"gray"}
                                     onChangeText={(text) => setPassword(text)}
-                                    secureTextEntry/>
-                                <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
+                                    // secureTextEntry
+                                    />
+                                {/* <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
                                     <Feather name="lock" size={24} color="black" />
-                                </View>
+                                </View> */}
                             </View>
 
                         </View>
@@ -135,8 +120,8 @@ const SignIn = ({onClose}:{onClose: () => void}) => {
                     </TouchableOpacity>
                 </View> */}
             </View>
-        </View>
+            </SafeAreaView>
+        </LinearGradient>
     )
 }
-
-export default SignIn;
+export default AddWorkoutScreen;

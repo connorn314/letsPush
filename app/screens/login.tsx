@@ -2,7 +2,7 @@ import { View, Text, KeyboardAvoidingView, TextInput, TouchableOpacity, Touchabl
 import { StyleSheet } from "react-native";
 import React, { useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FIREBASE_AUTH } from "../../firebaseConfig";
+import { FIREBASE_AUTH, FIRESTORE_DB } from "../../firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useAtom } from "jotai";
 import { userState } from "../storage/atomStorage";
