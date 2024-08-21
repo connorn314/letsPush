@@ -17,8 +17,8 @@ const Login = ({ navigation }: any) => {
 
 
     const appImage = require('../../assets/images/icon.png');
-    const [user, setUser] = useAtom(userState);
-    const [withPassword, setWithPassword] = useState(false);
+    // const [user, setUser] = useAtom(userState);
+    // const [withPassword, setWithPassword] = useState(false);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -73,9 +73,9 @@ const Login = ({ navigation }: any) => {
                                             borderTopRightRadius: 5,
                                             }} resizeMode={"contain"}/>
                                 </View>
-                                <TouchableOpacity>
+                                {/* <TouchableOpacity>
 
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                                 <View className="w-full space-y-4 mb-4">
                                     <View className="w-full relative ">
                                         <TextInput 

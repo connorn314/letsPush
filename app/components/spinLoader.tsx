@@ -30,7 +30,6 @@ const SpinLoader = ({ size = 24, color = "white"}: { size?: number; color?: stri
         <View>
             <Animated.View style={{transform: [{rotate}]}}>
                 <AntDesign name="loading1" size={size} color={color} />
-
             </Animated.View>
         </View>
     )

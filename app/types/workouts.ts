@@ -1,11 +1,14 @@
+import { Timestamp } from "firebase/firestore";
 
 
 export interface Workout {
     id: number;
+    userId: number;
     created_at: number;
-    start_time: number;
-    end_time: number;
+    startDate: Timestamp;
     distance: number;
-    complete: "complete" | "failure" | "NA";
-    followers: string[];
+    status: "complete" | "failure" | "NA";
+    pace: string;
+    name: string;
+    // followers: string[];
 }
