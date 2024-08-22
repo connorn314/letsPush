@@ -89,7 +89,7 @@ const AddWorkoutModal = ({ onClose }: { onClose: () => void }) => {
                                 <View className="w-1/2 text-right flex-row justify-end items-end">
                                     <DateTimePicker
                                         value={formData.startDate}
-                                        mode="datetime"
+                                        mode="date"
                                         display="default"
                                         onChange={(event, date) => setFormData({ ...formData, startDate: date || formData.startDate })}
                                     // style={{ marginBottom: 15 }}
@@ -134,24 +134,12 @@ const AddWorkoutModal = ({ onClose }: { onClose: () => void }) => {
                                     <Text className="text-[16px]">" / mi</Text>
                                 </View>
                             </TouchableOpacity>
-                            {/* <TouchableOpacity className="w-full flex-row justify-between items-center" onPress={() => console.log("add name")}>
-                                <Text className="font-medium text-lg">Name</Text>
-                                <View className="w-1/2 text-right justify-center items-end">
-                                    <TextInput
-                                        placeholder="Edit"
-                                        // className=" border-black border-2 rounded-lg"
-                                        style={{ paddingVertical: 0, paddingHorizontal: 0 }}
-                                        placeholderTextColor={"gray"}
-                                        value={formData.startDate}
-                                        onChangeText={(text) => setFormData({ ...formData, startDate: text })} />
-                                </View>
-                            </TouchableOpacity> */}
                         </View>
                     </KeyboardAvoidingView>
                 </View>
-                <View className="w-full ">
+                <View className="w-full bottom-24 absolute">
                     <TouchableOpacity className={` rounded-full ${!isComplete() ? "bg-gray-400" : "bg-[#a538ff]"} justify-center items-center h-16 `}
-                        onPress={() => isComplete() ? handleSubmit() : null}>
+                        onPress={() => isComplete() ? handleSubmit() : alert("please complete required fields")}>
                         {loading ? (
                             <SpinLoader />
                         ) : (

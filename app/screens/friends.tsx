@@ -19,7 +19,7 @@ const FriendsScreen = () => {
     const [user,] = useAtom(userState);
 
     useEffect(() => {
-        if (!user) return;
+        if (!user || !user.friends) return;
         // console.log("useEffect running")
         // const toursRef = collection(FIRESTORE_DB, "commitments");
         const q = query(

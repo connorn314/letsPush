@@ -84,31 +84,32 @@ const WorkoutsScreen = () => {
                         </TouchableOpacity>
                     </View>
                     <View className="w-full px-4 mt-24">
-                        <FlatList data={workouts} keyExtractor={(item) => `${item.id}`}
+                        <FlatList data={workouts.sort((a, b) => a.startDate.toDate().getTime() - b.startDate.toDate().getTime())} keyExtractor={(item) => `${item.id}`}
                             renderItem={({ item }) => {
                                 const date = item.startDate.toDate();
                                 return (
-                                    <TouchableOpacity className="bg-[#ffffff] shadow-sm border-rounded-full w-full rounded-lg p-4 my-1 justify-center items-start"
+                                    <TouchableOpacity className="bg-[#ffffff] shadow-sm border-rounded-full w-full rounded-lg p-4 my-1 flex-row justify-start items-center"
                                         onPress={() => {
                                             // playSound(mediaData[idx].url)
                                             alert("Eventually take to a workout details screen")
                                         }}  >
-                                        <View className="flex-row items-center mb-2 w-full">
-                                            <View className="grow">
-                                                <Text className="text-lg">{item.name}</Text>
-                                            </View>
-                                            <View className="grow">
-                                                <Text className={`text-lg w-full text-right`}>{`${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`}</Text>
-                                            </View>
+                                        <View className={`rounded-md justify-center items-center h-16 w-16 ${item.status === "complete" ? "bg-green-300" : (item.status === "failure" ? "bg-red-400" : "bg-slate-200")}`}>
+                                            <Text className={`text-lg text-center `}>{`${date.getMonth() + 1}/${date.getDate()}`}</Text>
                                         </View>
-                                        <Text className="">{item.distance} miles</Text>
-                                        <Text className="">{item.pace}" / mi</Text>
+                                        <View className="ml-2">
+                                            <Text className="text-lg">{item.name}</Text>
+                                            <Text className="">{item.distance} miles</Text>
+                                            <Text className="">{(item.pace.length <= 2 ? "00" : item.pace.length === 3 ? `0${item.pace.slice(0, item.pace.length - 2)}` : item.pace.slice(0, item.pace.length - 2))}:{(item.pace.length > 2 ? item.pace.slice(item.pace.length - 2) : (item.pace.length === 1 ? `0${item.pace}` : item.pace)) || "00"}" / mi</Text>
+                                        </View>
+                                        <View className="grow text-right ">
+                                            <Text className="grow text-right">{item.status === "complete" ? "Complete" : (item.status === "failure" ? "Failed" : "Unattempted")}</Text>
+                                        </View>
                                     </TouchableOpacity>
                                 )
-                            }}/>
+                            }} />
 
                     </View>
-                {/* <ScrollView className=" w-full border">
+                    {/* <ScrollView className=" w-full border">
                         {workouts.length ? workouts.map((workout: Workout, idx: number)=> {
                             // const dist = location?.coords.latitude && location.coords.longitude ? calculateDistance({ lat: location.coords.latitude, lng: location.coords.longitude }, 
                             //     { lat: workout.location.latitude,lng: workout.location.longitude }) : null
@@ -133,26 +134,26 @@ const WorkoutsScreen = () => {
                             )
                         }): null}
                     </ScrollView> */}
-            </View>
-            <BottomSheetModal
-                ref={bottomSheetModalRef}
-                index={test}
-                snapPoints={["100%"]}
-                // enablePanDownToClose
-                backdropComponent={props => (<BottomSheetBackdrop {...props}
-                    opacity={0.5}
-                    enableTouchThrough={false}
-                    appearsOnIndex={0}
-                    disappearsOnIndex={-1}
-                    style={[{ backgroundColor: 'rgba(0, 0, 0, 1)' }, StyleSheet.absoluteFillObject]} />)}
-                onChange={(index) => {
-                    if (index === -1) { Keyboard.dismiss() }
-                }}
-            >
-                <AddWorkoutModal onClose={() => handleClosePress()} />
-            </BottomSheetModal>
+                </View>
+                <BottomSheetModal
+                    ref={bottomSheetModalRef}
+                    index={test}
+                    snapPoints={["100%"]}
+                    // enablePanDownToClose
+                    backdropComponent={props => (<BottomSheetBackdrop {...props}
+                        opacity={0.5}
+                        enableTouchThrough={false}
+                        appearsOnIndex={0}
+                        disappearsOnIndex={-1}
+                        style={[{ backgroundColor: 'rgba(0, 0, 0, 1)' }, StyleSheet.absoluteFillObject]} />)}
+                    onChange={(index) => {
+                        if (index === -1) { Keyboard.dismiss() }
+                    }}
+                >
+                    <AddWorkoutModal onClose={() => handleClosePress()} />
+                </BottomSheetModal>
 
-        </SafeAreaView>
+            </SafeAreaView>
         </LinearGradient >
     )
 }
