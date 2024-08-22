@@ -21,6 +21,7 @@ const WorkoutsScreen = () => {
 
     const [user,] = useAtom(userState);
     const [workouts, setWorkouts] = useAtom(myWorkoutsState);
+    // const [loading, setLoading] = useState(false);
 
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
@@ -87,7 +88,7 @@ const WorkoutsScreen = () => {
                             renderItem={({ item }) => {
                                 const date = item.startDate.toDate();
                                 return (
-                                    <TouchableOpacity className="bg-[#efefef] shadow-sm border-rounded-full w-full rounded-lg p-4 my-1 justify-center items-start"
+                                    <TouchableOpacity className="bg-[#ffffff] shadow-sm border-rounded-full w-full rounded-lg p-4 my-1 justify-center items-start"
                                         onPress={() => {
                                             // playSound(mediaData[idx].url)
                                             console.log("Eventually take to a itemDetails screen")

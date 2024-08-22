@@ -25,7 +25,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 // const app = initializeApp(firebaseConfig);
-console.log(getApps(), "getApps")
+// console.log(getApps(), "getApps")
 export const FIREBASE_APP = initializeApp(firebaseConfig);
 export const FIRESTORE_DB = getFirestore(FIREBASE_APP);
 // export const FIRESTORE_STORAGE = getStorage(FIREBASE_APP, "gs://tour-guide-concept.appspot.com");
