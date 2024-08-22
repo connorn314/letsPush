@@ -80,7 +80,7 @@ const FriendsScreen = () => {
                                         <TouchableOpacity className="bg-[#ffffff] shadow-md border-rounded-full w-full rounded-lg p-4 my-1 justify-center items-start"
                                             onPress={() => {
                                                 // playSound(mediaData[idx].url)
-                                                console.log("Eventually take to a itemDetails screen")
+                                                alert("Eventually take to a friends detail screen")
                                             }}  >
                                             <View className="flex-row items-center w-full">
                                                 <View className="grow">

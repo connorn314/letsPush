@@ -53,7 +53,7 @@ const WorkoutsScreen = () => {
                 snapshot.docs.forEach(doc => {
 
                     // const tourStops = doc.data()
-                    console.log(doc.data(), console.log(doc.id))
+                    // console.log(doc.data(), console.log(doc.id))
                     workoutsArr.push({ id: doc.id, ...doc.data() })
                 })
                 setWorkouts(workoutsArr)
@@ -91,7 +91,7 @@ const WorkoutsScreen = () => {
                                     <TouchableOpacity className="bg-[#ffffff] shadow-sm border-rounded-full w-full rounded-lg p-4 my-1 justify-center items-start"
                                         onPress={() => {
                                             // playSound(mediaData[idx].url)
-                                            console.log("Eventually take to a itemDetails screen")
+                                            alert("Eventually take to a workout details screen")
                                         }}  >
                                         <View className="flex-row items-center mb-2 w-full">
                                             <View className="grow">

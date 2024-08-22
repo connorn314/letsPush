@@ -109,7 +109,7 @@ const SubApp = () => {
       const userDoc = await getDoc(userRef);
       if (userDoc.exists()) {
         const profile = userDoc.data();
-        console.log("retrieved profile", profile);
+        // console.log("retrieved profile", profile);
         setUser({ ...userObj, ...profile });
       } else {
         const newUser = (await createUser(userObj)).data
