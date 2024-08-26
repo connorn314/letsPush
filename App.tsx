@@ -88,7 +88,7 @@ const SubApp = () => {
   }, [])
 
   const createUser = async (userObj: any) => {
-    const userData: User = {
+    const userData = {
       name: "",
       created_at: Date.now(),
       friends: [],
