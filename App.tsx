@@ -20,6 +20,8 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import WorkoutsScreen from './app/screens/workouts';
 import SpinLoader from './app/components/spinLoader';
 import { View } from 'react-native';
+import useFriendsCommitments from './app/storage/useFriendsCommitments';
+import useFriends from './app/storage/useFriends';
 // import AddWorkoutModal from './app/components/addWorkout';
 
 // import { usePushNotifications } from './app/storage/usePushNotifications';
@@ -47,14 +49,17 @@ const LoginStack = () => (
 //   </Tab.Navigator>
 // )
 
-const MainAppStack = () => (
-  <Tab.Navigator>
-    <Tab.Screen options={{ headerShown: false }} name="Friends" component={FriendsScreen} />
-    <Tab.Screen options={{ headerShown: false }} name="Home" component={HomeScreen} />
-    <Tab.Screen options={{ headerShown: false }} name="Workouts" component={WorkoutsScreen} />
-  </Tab.Navigator>
+const MainAppStack = () => {
+  useFriendsCommitments();
+  useFriends();
+  return (
+    <Tab.Navigator>
+      <Tab.Screen options={{ headerShown: false }} name="Friends" component={FriendsScreen} />
+      <Tab.Screen options={{ headerShown: false }} name="Home" component={HomeScreen} />
+      <Tab.Screen options={{ headerShown: false }} name="Workouts" component={WorkoutsScreen} />
+    </Tab.Navigator>
 
-);
+)};
 
 
 

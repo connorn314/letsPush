@@ -1,5 +1,5 @@
 
-import { LinearGradient } from "expo-linear-gradient";
+// import { LinearGradient } from "expo-linear-gradient";
 // import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { useRef, useState } from "react";

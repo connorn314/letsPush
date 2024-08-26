@@ -6,10 +6,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Entypo from '@expo/vector-icons/Entypo';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
 // import SpinLoader from "../components/spinLoader";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import AddWorkoutModal from "../components/addWorkout";
 import { StyleSheet } from "react-native";
-import { Workout } from "../types/workouts";
+// import { Workout } from "../types/workouts";
 import { useAtom } from "jotai";
 import { myWorkoutsState, userState } from "../storage/atomStorage";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
@@ -73,17 +73,17 @@ const WorkoutsScreen = () => {
         >
             <SafeAreaView className={` transition-all duration-200 relative`}>
                 <View className='w-screen h-full justify-start items-center'>
-                    <View className='absolute top-0 right-0 w-full flex-row justify-between items-center'>
-                        <TouchableOpacity onPress={() => handlePresentModalPress()} className='p-4 m-4 bg-white shadow rounded-full'>
+                    <View className=' w-full flex-row justify-center items-center'>
+                        <TouchableOpacity onPress={() => handlePresentModalPress()} className='p-4  bg-white shadow rounded-full absolute top-4 left-4'>
                             <Entypo name="plus" size={24} color="#a538ff" />
                         </TouchableOpacity>
-                        <Text className="text-2xl text-white font-medium">Workouts</Text>
+                        <Text className="text-2xl text-white font-medium pt-7">Workouts</Text>
 
-                        <TouchableOpacity onPress={() => alert("not implemented yet")} className='p-4 m-4 bg-white shadow rounded-full'>
+                        <TouchableOpacity onPress={() => alert("not implemented yet")} className='p-4  bg-white shadow rounded-full absolute top-4 right-4'>
                             <Ionicons name="notifications" size={24} color="#a538ff" />
                         </TouchableOpacity>
                     </View>
-                    <View className="w-full px-4 mt-24">
+                    <View className="w-full px-4 mt-8">
                         <FlatList data={workouts.sort((a, b) => a.startDate.toDate().getTime() - b.startDate.toDate().getTime())} keyExtractor={(item) => `${item.id}`}
                             renderItem={({ item }) => {
                                 const date = item.startDate.toDate();
