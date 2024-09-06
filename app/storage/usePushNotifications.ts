@@ -61,7 +61,7 @@ export const usePushNotifications = (): PushNotificationState => {
             projectId,
           })
         ).data;
-        console.log(pushTokenString);
+        // console.log(pushTokenString, " Hi");
         // setExpoPushToken(pushTokenString);
         return pushTokenString;
       } catch (e: unknown) {

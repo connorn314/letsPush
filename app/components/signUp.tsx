@@ -16,14 +16,15 @@ const SignIn = ({onClose}:{onClose: () => void}) => {
     // const [user, setUser] = useAtom(userState);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
     const [loading, setLoading] = useState(false);
 
     const handleSignUp = async () => {
         setLoading(true);
         try {
-            await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password)
+            await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
         } catch (err: any) {
-            alert(err.message)
+            alert(err.message);
         } finally {
             setLoading(false);
         }
@@ -45,6 +46,19 @@ const SignIn = ({onClose}:{onClose: () => void}) => {
                             <Text className="text-xl font-semibold">Create your account</Text>
                         </View>
                         <View className="w-full space-y-4 mb-4">
+                            <View className="w-full relative ">
+                                <TextInput 
+                                    placeholder="Name"
+                                    className=" border-black border-2 rounded-lg"
+                                    style={{paddingVertical: 16, paddingHorizontal: 36}}
+                                    placeholderTextColor={"gray"}
+                                    value={name}
+                                    onChangeText={(text) => setName(text)} />
+                                <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
+                                    <MaterialCommunityIcons name="email-outline" className="absolute left-0" size={24} color="black" />
+                                </View>
+                            </View>
+
                             <View className="w-full relative ">
                                 <TextInput 
                                     placeholder="Email"

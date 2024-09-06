@@ -14,7 +14,8 @@ const useFriendsCommitments = () => {
             setFriendCommitments([]);
             return;
         }
-        if (!user.friends) return;
+        if (!user || !user.friends?.length) return;
+        // console.log("getting passed this useFriendsCommitments", user.friends)
         // console.log("useEffect running")
         // const toursRef = collection(FIRESTORE_DB, "commitments");
         const q = query(

@@ -6,45 +6,17 @@ import { useEffect, useState } from 'react';
 // import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DismissKeyboard } from './login';
 import Feather from '@expo/vector-icons/Feather';
-import { userState } from '../storage/atomStorage';
-import { collection, doc, getDoc, onSnapshot, query, where, documentId } from 'firebase/firestore';
-import { FIRESTORE_DB } from '../../firebaseConfig';
+import { myFriends, userState } from '../storage/atomStorage';
+// import { collection, doc, getDoc, onSnapshot, query, where, documentId } from 'firebase/firestore';
+// import { FIRESTORE_DB } from '../../firebaseConfig';
 import { useAtom } from "jotai";
 
 const FriendsScreen = () => {
 
     const [searchInput, setSearchInput] = useState("");
-    const [friends, setFriends] = useState<any[]>([]);
+    const [friends, ] = useAtom(myFriends);
 
-    const [user,] = useAtom(userState);
-
-    useEffect(() => {
-        if (!user || !user.friends) return;
-        // console.log("useEffect running")
-        // const toursRef = collection(FIRESTORE_DB, "commitments");
-        const q = query(
-            collection(FIRESTORE_DB, 'users'),
-            where(documentId(), 'in', user.friends)
-
-        );
-
-        const subscriber = onSnapshot(q, {
-            next: (snapshot) => {
-                const friendsArr: any[] = [];
-                snapshot.docs.forEach(doc => {
-
-                    // const tourStops = doc.data()
-                    // console.log(doc.data(), console.log(doc.id))
-                    friendsArr.push({ id: doc.id, ...doc.data() })
-                })
-                setFriends(friendsArr)
-            }
-        })
-
-        return () => subscriber();
-    }, [user])
-
-    // useEffect(() => console.log("friends", friends), [friends])
+    // const [user,] = useAtom(userState);
 
     return (
         <LinearGradient

@@ -44,7 +44,7 @@ const WorkoutsScreen = () => {
         // const toursRef = collection(FIRESTORE_DB, "commitments");
         const q = query(
             collection(FIRESTORE_DB, 'commitments'),
-            where('userId', '==', user.uid)
+            where('userId', '==', user.id)
         );
 
         const subscriber = onSnapshot(q, {

@@ -14,9 +14,9 @@ const useFriends = () => {
             setFriends([]);
             return;
         }
-        if (!user.friends) return;
-        // console.log("useEffect running")
-        // const toursRef = collection(FIRESTORE_DB, "commitments");
+        if (!user || !user.friends?.length) return;
+        // console.log("getting passed this use Friends", user.friends)
+
         const q = query(
             collection(FIRESTORE_DB, 'users'),
             where(documentId(), 'in', user.friends)
@@ -32,6 +32,7 @@ const useFriends = () => {
                     // console.log(doc.data(), console.log(doc.id))
                     friendsArr.push({ id: doc.id, ...doc.data() })
                 })
+                // console.log("friends", friendsArr)
                 setFriends(friendsArr)
             }
         })

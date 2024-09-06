@@ -16,12 +16,15 @@ import { FIREBASE_AUTH, FIRESTORE_DB } from './firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect, useState } from 'react';
 import { User } from './app/types/user';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import WorkoutsScreen from './app/screens/workouts';
 import SpinLoader from './app/components/spinLoader';
 import { View } from 'react-native';
 import useFriendsCommitments from './app/storage/useFriendsCommitments';
 import useFriends from './app/storage/useFriends';
+// import { createSessionFromUrl } from './app/components/auth';
+import * as Linking from "expo-linking";
+import useAuth from './app/storage/useAuth';
 // import AddWorkoutModal from './app/components/addWorkout';
 
 // import { usePushNotifications } from './app/storage/usePushNotifications';
@@ -52,6 +55,26 @@ const LoginStack = () => (
 const MainAppStack = () => {
   useFriendsCommitments();
   useFriends();
+  const { createSessionFromUrl } = useAuth();
+
+  useEffect(() => {
+    const handleDeepLink = (event: any) => {
+      const { url } = event;
+      console.log("Deep link received:", url);
+
+      // Extract OAuth tokens or code from the URL
+      createSessionFromUrl(url); // Handle the response here
+    };
+
+    // Attach the deep link listener
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+
+    return () => {
+      // Clean up the listener when the component unmounts
+      subscription.remove();
+    };
+  }, []);
+
   return (
     <Tab.Navigator>
       <Tab.Screen options={{ headerShown: false }} name="Friends" component={FriendsScreen} />
@@ -59,7 +82,8 @@ const MainAppStack = () => {
       <Tab.Screen options={{ headerShown: false }} name="Workouts" component={WorkoutsScreen} />
     </Tab.Navigator>
 
-)};
+  )
+};
 
 
 
@@ -74,11 +98,8 @@ const SubApp = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, userObj => {
       if (userObj) {
-        // setUser(userObj);
         getMe(userObj);
       } else {
-
-        console.log("here anytime?")
         setUser(null);
         setLoading(false);
       }
@@ -86,6 +107,19 @@ const SubApp = () => {
 
     return unsubscribe;
   }, [])
+
+  useEffect(() => {
+    if (user && ((!user.pushToken && expoToken) || (user.pushToken !== expoToken))) {
+      updateExpoToken()
+    }
+  }, [user, expoToken])
+
+  const updateExpoToken = async () => {
+    const userRef = doc(FIRESTORE_DB, "users", user.uid)
+    await updateDoc(userRef, {
+      pushToken: expoToken
+    })
+  }
 
   const createUser = async (userObj: any) => {
     const userData = {
@@ -112,13 +146,15 @@ const SubApp = () => {
     try {
       const userRef = doc(FIRESTORE_DB, `users`, `${userObj.uid}`);
       const userDoc = await getDoc(userRef);
+      const stravaDetailsRef = doc(FIRESTORE_DB, `users/${userObj.uid}/strava`, `me`);
+      const stravaDoc = await getDoc(stravaDetailsRef);
+      // console.log("me: ", userDoc.data(), stravaDoc.data());
       if (userDoc.exists()) {
-        const profile = userDoc.data();
-        // console.log("retrieved profile", profile);
-        setUser({ ...userObj, ...profile });
+        // const profile = userDoc.data();
+        setUser({ ...userObj, id: userObj.uid, ...userDoc.data(), strava: stravaDoc.exists() ? stravaDoc.data() : undefined });
       } else {
         const newUser = (await createUser(userObj)).data
-        setUser({ ...userObj, ...newUser })
+        setUser({ ...userObj, id: userObj.uid, ...newUser, strava: stravaDoc.exists() ? stravaDoc.data() : undefined })
       }
       setLoading(false);
     } catch (err: any) {

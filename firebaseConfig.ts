@@ -5,6 +5,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getFirestore } from "firebase/firestore";
 // import { getStorage } from "firebase/storage";
 import { getApps } from 'firebase/app';
+import { getFunctions } from 'firebase/functions';
+import { httpsCallable } from "firebase/functions";
+
 // Optionally import the services that you want to use
 // import {...} from "firebase/database";
 // import {...} from "firebase/functions";
@@ -28,6 +31,9 @@ const firebaseConfig = {
 // console.log(getApps(), "getApps")
 export const FIREBASE_APP = initializeApp(firebaseConfig);
 export const FIRESTORE_DB = getFirestore(FIREBASE_APP);
+export const FIREBASE_FUNCTIONS = getFunctions(FIREBASE_APP);
+export const helloWorld = httpsCallable(FIREBASE_FUNCTIONS, 'helloWorld');
+
 // export const FIRESTORE_STORAGE = getStorage(FIREBASE_APP, "gs://tour-guide-concept.appspot.com");
 // export const FIREBASE_AUTH = getAuth(FIREBASE_APP);
 export const FIREBASE_AUTH = initializeAuth(FIREBASE_APP, { persistence: getReactNativePersistence(AsyncStorage) });
