@@ -27,7 +27,7 @@ const HomeScreen = ({ navigation }: any) => {
 
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-    const { performOAuth } = useAuth();
+    const { performOAuth, setStravaSubscription, stravaGetMe } = useAuth();
 
     const handlePresentModalPress = useCallback(() => {
         setTest(0)
@@ -45,15 +45,15 @@ const HomeScreen = ({ navigation }: any) => {
         }
     };
 
-    const testFunction = async () => {
-        try {
-            // const res = await axios.get("https://us-central1-push-fe07a.cloudfunctions.net/helloWorld")
-            const { data } = await helloWorld()
-            console.log(data, "data")
-        } catch (err) {
-            console.log(JSON.stringify(err))
-        }
-    }
+    // const testFunction = async () => {
+    //     try {
+    //         // const res = await axios.get("https://us-central1-push-fe07a.cloudfunctions.net/helloWorld")
+    //         const { data } = await helloWorld()
+    //         console.log(data, "data")
+    //     } catch (err) {
+    //         console.log(JSON.stringify(err))
+    //     }
+    // }
 
     return (
         <LinearGradient
@@ -86,7 +86,7 @@ const HomeScreen = ({ navigation }: any) => {
                 <BottomSheetModal
                     ref={bottomSheetModalRef}
                     index={test}
-                    snapPoints={["45%"]}
+                    snapPoints={["50%"]}
                     // enablePanDownToClose
                     backdropComponent={props => (<BottomSheetBackdrop {...props}
                         opacity={0.5}
@@ -114,13 +114,23 @@ const HomeScreen = ({ navigation }: any) => {
                                 <Text className={`text-[#a538ff] text-xl p-3 rounded-lg`}>Sync Strava</Text>
                             </TouchableOpacity>
                         )}
-                        <TouchableOpacity className="bg-white h-12" onPress={testFunction}>
-                            <Text className="text-[#a538ff] text-xl p-3 rounded-lg">Test Function</Text>
-                        </TouchableOpacity>
+                        {user?.strava?.subscription_id ? (
+                            <TouchableOpacity className={` bg-[#a538ff] w-full items-center justify-center `} onPress={() => alert("no unsync functionality yet")}>
+                                <Text className={`text-white text-xl p-3 rounded-lg`}>Subscription Set</Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity className={` bg-white  w-full items-center justify-center`} onPress={setStravaSubscription}>
+                                <Text className={`text-[#a538ff] text-xl p-3 rounded-lg`}>Set Subscription</Text>
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity className={` bg-white  w-full items-center justify-center`} onPress={stravaGetMe}>
+                                <Text className={`text-[#a538ff] text-xl p-3 rounded-lg`}>Get me Strava</Text>
+                            </TouchableOpacity>
                         {user?.strava?.expires_at && (user?.strava?.expires_at > (Date.now() / 1000)) && (
                             <View className='w-full items-center justify-center'>
-                                <Text className='text-lg'>Strava Id: {user?.strava?.athlete?.id}</Text>
-                                <Text className='text-lg'>Strava Name: {user?.strava?.athlete?.firstname}</Text>
+                                <Text className='text-lg'>Strava Id: {user.strava_athlete_id}</Text>
+                                <Text className='text-lg'>Strava Name: {user.strava.athlete?.firstname}</Text>
+                                <Text className='text-lg'>Subscription Id: {user.strava.subscription_id}</Text>
                             </View>
                         )}
                     </View>

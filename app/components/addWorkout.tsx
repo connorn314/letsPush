@@ -5,7 +5,7 @@ import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingVi
 import { useRef, useState } from "react";
 import { DismissKeyboard } from "../screens/login";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { collection, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, setDoc, updateDoc, doc, DocumentReference } from 'firebase/firestore';
 import { FIRESTORE_DB } from "../../firebaseConfig";
 import { useAtom } from "jotai";
 import { userState } from "../storage/atomStorage";
@@ -42,9 +42,15 @@ const AddWorkoutModal = ({ onClose }: { onClose: () => void }) => {
             const commitmentRef = await addDoc(collection(FIRESTORE_DB, 'commitments'), {
                 ...formData,
                 status: "NA",
-                userId: user.uid, // Attach the userId from the authenticated user
+                userId: user.id, // Attach the userId from the authenticated user
                 created_at: serverTimestamp() // Optional: Add a timestamp when the commitment was created
             });
+            if (commitmentRef.id){
+                await updateDoc(doc(FIRESTORE_DB, "users", user.id), {
+                    workouts: (user.workouts as DocumentReference[]).concat([commitmentRef])
+                })
+            }
+
             console.log('Commitment created with ID:', commitmentRef.id);
             onClose();
         } catch (err) {

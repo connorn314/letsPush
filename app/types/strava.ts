@@ -20,3 +20,11 @@ export interface Athlete {
     username:       null;
     weight:         number;
 }
+
+export interface WebhookRequestBody {
+    owner_id: number;
+    event_time: number; // timestamp
+    object_id: number;
+    object_type: "activity" | "athlete";
+    aspect_type: "create" | "update" | "delete";
+}
