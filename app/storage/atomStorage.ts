@@ -8,6 +8,8 @@ export const myWorkoutsState = atom<Workout[]>([]);
 export const myFriends = atom<User[]>([]);
 export const friendCommitmentsState = atom<Workout[]>([]);
 
+export const authLoadingState = atom<boolean>(false);
+
 export interface PushNotificationState {
     notification?: Notifications.Notification;
     expoPushToken?: string;

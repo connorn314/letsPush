@@ -4,15 +4,16 @@ import * as QueryParams from "expo-auth-session/build/QueryParams";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import axios from "axios";
-import { userState } from "./atomStorage";
+import { authLoadingState, userState } from "./atomStorage";
 import { FIRESTORE_DB } from "../../firebaseConfig";
-import { addDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { Athlete } from "../types/strava";
 import { useEffect } from "react";
 
 const useAuth = () => {
 
   const [user, setUser] = useAtom(userState);
+  const [, setAuthLoading] = useAtom(authLoadingState);
 
   useEffect(() => {
     if (user && user.id) {
@@ -26,8 +27,8 @@ const useAuth = () => {
     path: "bevvarra.com"
   });
 
-  let appOAuthUrlStravaScheme = `strava://oauth/mobile/authorize?client_id=${process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID}&redirect_uri=${redirectTo}&response_type=code&approval_prompt=auto&scope=read,activity:read_all&state=test`
-  let webOAuthUrl = `https://www.strava.com/oauth/mobile/authorize?client_id=${process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID}&redirect_uri=${redirectTo}&response_type=code&approval_prompt=auto&scope=read,activity:read_all&state=test`
+  let appOAuthUrlStravaScheme = `strava://oauth/mobile/authorize?client_id=${process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID}&redirect_uri=${redirectTo}&response_type=code&approval_prompt=auto&scope=read,activity:read_all`
+  let webOAuthUrl = `https://www.strava.com/oauth/mobile/authorize?client_id=${process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID}&redirect_uri=${redirectTo}&response_type=code&approval_prompt=auto&scope=read,activity:read_all`
 
   const verifyStravaToken = async () => {
     try {
@@ -56,14 +57,15 @@ const useAuth = () => {
 
     if (!code) return;
     if (scope !== "activity:read_all,read") {
-      alert("We need all requested permission for full use of the app")
+      alert("We need all requested permissions for full use of the app")
     }
 
-    await exchangeCodeForToken(code)
+    await exchangeCodeForTokenAndSetSubscription(code)
   };
 
-  const exchangeCodeForToken = async (code: string) => {
+  const exchangeCodeForTokenAndSetSubscription = async (code: string) => {
     try {
+      setAuthLoading(true)
       const res = await axios.post("https://www.strava.com/api/v3/oauth/token", {
         client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
         client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
@@ -78,12 +80,33 @@ const useAuth = () => {
         await updateDoc(userRef, { strava_athlete_id: athlete.id, name: `${athlete.firstname} ${athlete.lastname}` });
       }
 
-      await syncStravaData({ refresh_token, access_token, expires_at, athlete  })
+      // await syncStravaData({ refresh_token, access_token, expires_at, athlete  })
+      // first we need to set the subscription 
+      const subscriptionRes = await axios.post("https://www.strava.com/api/v3/push_subscriptions", {
+        client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
+        client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
+        callback_url: process.env.EXPO_PUBLIC_WEBHOOK_URL,
+        verify_token: "BEVVARRA"
+      })
+
+      const { id } = subscriptionRes.data;
+
+      await syncStravaData({ refresh_token, access_token, athlete, expires_at, subscription_id: id })
       console.log("stravaData synced")
-      setUser({ ...user, strava_athlete_id: athlete?.id, name: `${athlete.firstname} ${athlete.lastname}`, strava: { refresh_token, access_token, athlete, expires_at } })
+      
+      setUser({ 
+        ...user, 
+        strava_athlete_id: athlete?.id, 
+        name: `${athlete.firstname} ${athlete.lastname}`, 
+        strava: { refresh_token, access_token, athlete, expires_at, subscription_id: id } 
+      })
+      return;
 
     } catch (err) {
-      alert("err retrieving access token: " + err)
+      alert("err retrieving access token or setting subscription: " + err)
+    } finally {
+      setAuthLoading(false)
+
     }
   }
 
@@ -108,7 +131,7 @@ const useAuth = () => {
     }
   }
 
-  const syncStravaData = async (stravaData: { refresh_token: string, access_token: string, expires_at: number, athlete?: Athlete }) => {
+  const syncStravaData = async (stravaData: { refresh_token: string, access_token: string, expires_at: number, athlete?: Athlete, subscription_id?: string }) => {
 
     const stravaDetailsRef = doc(FIRESTORE_DB, `users/${user.id}/strava`, `me`);
     const stravaDoc = await getDoc(stravaDetailsRef);
@@ -123,6 +146,7 @@ const useAuth = () => {
 
   const performOAuth = async () => {
     if (await Linking.canOpenURL(appOAuthUrlStravaScheme)) {
+      // console.log(appOAuthUrlStravaScheme)
       try {
         Linking.openURL(appOAuthUrlStravaScheme)
       } catch (err) {
@@ -142,29 +166,37 @@ const useAuth = () => {
 
   };
 
-  const setStravaSubscription = async () => {
-    if (!user || !user.id) return;
+  const stravaRemoveAuthentication = async () => {
+    if (!user?.strava?.access_token){
+      alert("No valid access token in user");
+      return;
+    }
     try {
-      const res = await axios.post("https://www.strava.com/api/v3/push_subscriptions", {
-        client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
-        client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
-        callback_url: process.env.EXPO_PUBLIC_WEBHOOK_URL,
-        verify_token: "BEVVARRA"
-      })
-
-      const { id } = res.data
+      setAuthLoading(true)
+      if (user.strava.subscription_id){
+        const res = await axios.delete(`https://www.strava.com/api/v3/push_subscriptions/${user.strava.subscription_id}`, {
+          params: {
+            client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
+            client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET
+          }
+        })
+        console.log("successfully deleted subscription (should be 204): ", res.status)
+      }
+      const { data } = await axios.post(`https://www.strava.com/oauth/deauthorize?access_token=${user.strava.access_token}`)
+      console.log("successful de-authorization: ", data)
 
       const stravaDetailsRef = doc(FIRESTORE_DB, `users/${user.id}/strava`, `me`);
-      const stravaDoc = await getDoc(stravaDetailsRef);
-  
-      if (stravaDoc.exists()) {
-        await updateDoc(stravaDetailsRef, { subscription_id: id })
-        setUser({...user, strava: {...(user.strava ?? {}), subscription_id: id }})
-      } else {
-        alert("problem finding strava info")
-      }
+      await deleteDoc(stravaDetailsRef);
+
+      const temp = {...user};
+      delete temp.strava
+      setUser(temp)
+      console.log("successful deleted strava details")
+
     } catch (err) {
       alert(JSON.stringify(err))
+    } finally {
+      setAuthLoading(false);
     }
   }
 
@@ -179,7 +211,7 @@ const useAuth = () => {
   }
 
 
-  return { performOAuth, createSessionFromUrl, refreshToken, setStravaSubscription, stravaGetMe }
+  return { performOAuth, createSessionFromUrl, refreshToken, stravaGetMe, stravaRemoveAuthentication }
 }
 
 export default useAuth;

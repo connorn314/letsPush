@@ -17,7 +17,7 @@ import { FIRESTORE_DB } from "../../firebaseConfig";
 // import { Timestamp } from "firebase/firestore";
 
 
-const WorkoutsScreen = () => {
+const WorkoutsScreen = ({ navigation }: any) => {
 
     const [user,] = useAtom(userState);
     const [workouts, setWorkouts] = useAtom(myWorkoutsState);
@@ -91,7 +91,10 @@ const WorkoutsScreen = () => {
                                     <TouchableOpacity className="bg-[#ffffff] shadow-sm border-rounded-full w-full rounded-lg p-4 my-1 flex-row justify-start items-center"
                                         onPress={() => {
                                             // playSound(mediaData[idx].url)
-                                            alert("Eventually take to a workout details screen")
+                                            // alert("Eventually take to a workout details screen")
+                                            navigation.navigate("Personal Workout Details", {
+                                                workoutDetails: item
+                                            })
                                         }}  >
                                         <View className={`rounded-md justify-center items-center h-16 w-16 ${item.status === "complete" ? "bg-green-300" : (item.status === "failure" ? "bg-red-400" : "bg-slate-200")}`}>
                                             <Text className={`text-lg text-center `}>{`${date.getMonth() + 1}/${date.getDate()}`}</Text>

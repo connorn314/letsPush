@@ -25,6 +25,8 @@ import useFriends from './app/storage/useFriends';
 // import { createSessionFromUrl } from './app/components/auth';
 import * as Linking from "expo-linking";
 import useAuth from './app/storage/useAuth';
+import WorkoutDetailsScreen from './app/screens/workoutDetails';
+import PersonalWorkoutDetailsScreen from './app/screens/PersonalWorkoutDetails';
 // import AddWorkoutModal from './app/components/addWorkout';
 
 // import { usePushNotifications } from './app/storage/usePushNotifications';
@@ -37,6 +39,12 @@ export const store = createStore();
 const Stack = createNativeStackNavigator();
 // const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+const HomeWorkoutStack = createNativeStackNavigator();
+const PersonalWorkoutStack = createNativeStackNavigator();
+
+interface Keyable {
+  [key: string]: any
+}
 
 const LoginStack = () => (
   <Stack.Navigator>
@@ -44,13 +52,48 @@ const LoginStack = () => (
   </Stack.Navigator>
 );
 
-// const TestStack = () => (
-//   <Tab.Navigator>
-//     <Tab.Screen options={{ headerShown: false }} name="Friends" component={FriendsScreen} />
-//     <Tab.Screen options={{ headerShown: false }} name="Home" component={HomeScreen} />
-//     <Tab.Screen options={{ headerShown: false }} name="Workouts" component={WorkoutsScreen} />
-//   </Tab.Navigator>
-// )
+const HomeWorkoutStackComponent = () => (
+  <HomeWorkoutStack.Navigator>
+    <HomeWorkoutStack.Screen options={{ headerShown: false }} name="Home Page" component={HomeScreen} />
+    <HomeWorkoutStack.Screen
+      name="Home Workout Details"
+      component={WorkoutDetailsScreen}
+      options={({ route }) => ({
+        title: (route?.params as Keyable)?.workoutDetails?.name ?? "Details",
+        headerStyle: {
+          backgroundColor: '#ffffff',
+        },
+        // headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+        headerBackTitleVisible: false,
+        // animation: "fade_from_bottom"
+      })}
+    />
+  </HomeWorkoutStack.Navigator>
+)
+
+const PersonalWorkoutStackComponent = () => (
+  <PersonalWorkoutStack.Navigator>
+    <PersonalWorkoutStack.Screen options={{ headerShown: false }} name="Workouts Page" component={WorkoutsScreen} />
+    <PersonalWorkoutStack.Screen
+      name="Personal Workout Details"
+      component={PersonalWorkoutDetailsScreen}
+      options={({ route }) => ({ 
+        title: (route?.params as Keyable)?.workoutDetails?.name ?? "Details",
+        headerStyle: {
+          backgroundColor: '#ffffff',
+        },
+        // headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+        headerBackTitleVisible: false,
+      })}
+    />
+  </PersonalWorkoutStack.Navigator>
+)
 
 const MainAppStack = () => {
   useFriendsCommitments();
@@ -59,6 +102,7 @@ const MainAppStack = () => {
 
   useEffect(() => {
     const handleDeepLink = (event: any) => {
+      console.log(event)
       const { url } = event;
       console.log("Deep link received:", url);
 
@@ -78,8 +122,8 @@ const MainAppStack = () => {
   return (
     <Tab.Navigator>
       <Tab.Screen options={{ headerShown: false }} name="Friends" component={FriendsScreen} />
-      <Tab.Screen options={{ headerShown: false }} name="Home" component={HomeScreen} />
-      <Tab.Screen options={{ headerShown: false }} name="Workouts" component={WorkoutsScreen} />
+      <Tab.Screen options={{ headerShown: false }} name="Home" component={HomeWorkoutStackComponent} />
+      <Tab.Screen options={{ headerShown: false }} name="Workouts" component={PersonalWorkoutStackComponent} />
     </Tab.Navigator>
 
   )

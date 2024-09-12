@@ -8,7 +8,7 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Entypo from '@expo/vector-icons/Entypo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
-const CommitmentCard = ({ commitment }: { commitment: Workout }) => {
+const CommitmentCard = ({ commitment, onPress }: { commitment: Workout, onPress: () => void }) => {
 
     const date = commitment.startDate.toDate();
     const [friends] = useAtom(myFriends);
@@ -21,7 +21,8 @@ const CommitmentCard = ({ commitment }: { commitment: Workout }) => {
             <TouchableOpacity className="bg-[#ffffff] shadow-sm w-full p-4 my-1 justify-center items-start"
                 onPress={() => {
                     // playSound(mediaData[idx].url)
-                    alert("Eventually take to a workout details screen")
+                    // alert("Eventually take to a workout details screen")
+                    onPress()
                 }}  >
                 <View className='flex-row justify-between items-center w-full'>
                     <View className='flex-row justify-start items-center'>
