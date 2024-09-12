@@ -26,7 +26,7 @@ import useFriends from './app/storage/useFriends';
 import * as Linking from "expo-linking";
 import useAuth from './app/storage/useAuth';
 import WorkoutDetailsScreen from './app/screens/workoutDetails';
-import PersonalWorkoutDetailsScreen from './app/screens/PersonalWorkoutDetails';
+import PersonalWorkoutDetailsScreen from './app/screens/personalWorkoutDetails';
 // import AddWorkoutModal from './app/components/addWorkout';
 
 // import { usePushNotifications } from './app/storage/usePushNotifications';
