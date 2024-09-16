@@ -18,11 +18,9 @@ const CommitmentCard = ({ commitment, onPress }: { commitment: Workout, onPress:
     useEffect(() => setAuthor(friends.find(friend => friend.id === commitment.userId) ?? null), [friends])
 
     return (
-        <View className='w-full'>
-            <TouchableOpacity className="bg-[#ffffff] shadow-sm w-full p-4 my-1 justify-center items-start"
+        <View className='w-full px-4'>
+            <TouchableOpacity className="bg-[#ffffff] shadow-sm w-full p-4 my-1 justify-center rounded-xl items-start"
                 onPress={() => {
-                    // playSound(mediaData[idx].url)
-                    // alert("Eventually take to a workout details screen")
                     onPress()
                 }}  >
                 <View className='flex-row justify-between items-center w-full'>
@@ -33,7 +31,7 @@ const CommitmentCard = ({ commitment, onPress }: { commitment: Workout, onPress:
                         </View>
                         <View className="ml-2">
                             <Text className="text-lg font-medium">{commitment.name}</Text>
-                            <Text className='text-sm '>{author?.name}</Text>
+                            <Text className='text-sm h-6 '>{author?.name} </Text>
                             <View className='flex-row justify-start items-center py-1'>
                                 <FontAwesome5 name="running" size={18} color="black" />
                                 <Text className='ml-2 font-medium'>Scheduled for {`${date.getMonth() + 1}/${date.getDate()}`}</Text>

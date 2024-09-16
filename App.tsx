@@ -14,8 +14,8 @@ import { useAtom } from "jotai";
 import FriendsScreen from './app/screens/friends';
 import { FIREBASE_AUTH, FIRESTORE_DB } from './firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
-import { useEffect, useState } from 'react';
-import { User } from './app/types/user';
+import React, { useEffect, useState } from 'react';
+// import { User } from './app/types/user';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import WorkoutsScreen from './app/screens/workouts';
 import SpinLoader from './app/components/spinLoader';
@@ -27,6 +27,9 @@ import * as Linking from "expo-linking";
 import useAuth from './app/storage/useAuth';
 import WorkoutDetailsScreen from './app/screens/workoutDetails';
 import PersonalWorkoutDetailsScreen from './app/screens/personalWorkoutDetails';
+import TabIcon from './app/components/tabIcon';
+import useMyCommitments from './app/storage/useMyCommitments';
+// import { createDrawerNavigator } from '@react-navigation/drawer';
 // import AddWorkoutModal from './app/components/addWorkout';
 
 // import { usePushNotifications } from './app/storage/usePushNotifications';
@@ -41,10 +44,20 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const HomeWorkoutStack = createNativeStackNavigator();
 const PersonalWorkoutStack = createNativeStackNavigator();
+// const NotificationDrawer = createDrawerNavigator();
 
-interface Keyable {
-  [key: string]: any
-}
+// interface Keyable {
+//   [key: string]: any
+// }
+
+// const NotificationDrawerStack = () => {
+//   return (
+//     <NotificationDrawer.Navigator screenOptions={{ drawerPosition: 'right' }}>
+//       <NotificationDrawer.Screen name="Home" options={{ headerShown: false }} component={HomeScreen} />
+//     </NotificationDrawer.Navigator>
+//   );
+// };
+
 
 const LoginStack = () => (
   <Stack.Navigator>
@@ -58,17 +71,8 @@ const HomeWorkoutStackComponent = () => (
     <HomeWorkoutStack.Screen
       name="Home Workout Details"
       component={WorkoutDetailsScreen}
-      options={({ route }) => ({
-        title: (route?.params as Keyable)?.workoutDetails?.name ?? "Details",
-        headerStyle: {
-          backgroundColor: '#ffffff',
-        },
-        // headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-        headerBackTitleVisible: false,
-        // animation: "fade_from_bottom"
+      options={({ route }) => ({ 
+        headerShown: false
       })}
     />
   </HomeWorkoutStack.Navigator>
@@ -81,15 +85,7 @@ const PersonalWorkoutStackComponent = () => (
       name="Personal Workout Details"
       component={PersonalWorkoutDetailsScreen}
       options={({ route }) => ({ 
-        title: (route?.params as Keyable)?.workoutDetails?.name ?? "Details",
-        headerStyle: {
-          backgroundColor: '#ffffff',
-        },
-        // headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-        headerBackTitleVisible: false,
+        headerShown: false
       })}
     />
   </PersonalWorkoutStack.Navigator>
@@ -98,6 +94,8 @@ const PersonalWorkoutStackComponent = () => (
 const MainAppStack = () => {
   useFriendsCommitments();
   useFriends();
+  useMyCommitments();
+
   const { createSessionFromUrl } = useAuth();
 
   useEffect(() => {
@@ -120,10 +118,22 @@ const MainAppStack = () => {
   }, []);
 
   return (
-    <Tab.Navigator>
-      <Tab.Screen options={{ headerShown: false }} name="Friends" component={FriendsScreen} />
-      <Tab.Screen options={{ headerShown: false }} name="Home" component={HomeWorkoutStackComponent} />
-      <Tab.Screen options={{ headerShown: false }} name="Workouts" component={PersonalWorkoutStackComponent} />
+    <Tab.Navigator screenOptions={{
+      tabBarActiveTintColor: "#000000",
+      tabBarInactiveTintColor: "#a6a6a6",
+    }} initialRouteName="Home">
+      <Tab.Screen options={{ 
+        headerShown: false,
+        tabBarIcon: props => <TabIcon {...props} icon="Friends" />
+      }} name="Friends" component={FriendsScreen} />
+      <Tab.Screen options={{ 
+        headerShown: false,
+        tabBarIcon: props => <TabIcon {...props} icon="Home" />
+      }} name="Home" component={HomeWorkoutStackComponent} />
+      <Tab.Screen options={{ 
+        headerShown: false,
+        tabBarIcon: props => <TabIcon {...props} icon="Workouts" />
+      }} name="Workouts" component={PersonalWorkoutStackComponent} />
     </Tab.Navigator>
 
   )
