@@ -1,7 +1,7 @@
 import { useAtom } from 'jotai';
 import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
-import { myFriends } from '../storage/atomStorage';
+import { myFriends } from '@/storage/atomStorage';
 import { Workout } from '../types/workouts';
 import { User } from '../types/user';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';

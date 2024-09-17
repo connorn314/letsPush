@@ -4,8 +4,8 @@ import * as QueryParams from "expo-auth-session/build/QueryParams";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import axios from "axios";
-import { authLoadingState, userState } from "./atomStorage";
-import { FIRESTORE_DB } from "../../firebaseConfig";
+import { stravaAuthLoadingState, userState } from "./atomStorage";
+import { FIRESTORE_DB } from "../firebaseConfig";
 import { deleteDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { Athlete } from "../types/strava";
 import { useEffect } from "react";
@@ -13,7 +13,7 @@ import { useEffect } from "react";
 const useAuth = () => {
 
   const [user, setUser] = useAtom(userState);
-  const [, setAuthLoading] = useAtom(authLoadingState);
+  const [, setStravaAuthLoading] = useAtom(stravaAuthLoadingState);
 
   useEffect(() => {
     if (user && user.id) {
@@ -65,7 +65,7 @@ const useAuth = () => {
 
   const exchangeCodeForTokenAndSetSubscription = async (code: string) => {
     try {
-      setAuthLoading(true)
+      setStravaAuthLoading(true)
       const res = await axios.post("https://www.strava.com/api/v3/oauth/token", {
         client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
         client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
@@ -105,7 +105,7 @@ const useAuth = () => {
     } catch (err) {
       alert("err retrieving access token or setting subscription: " + err)
     } finally {
-      setAuthLoading(false)
+      setStravaAuthLoading(false)
 
     }
   }
@@ -172,7 +172,7 @@ const useAuth = () => {
       return;
     }
     try {
-      setAuthLoading(true)
+      setStravaAuthLoading(true)
       if (user.strava.subscription_id){
         const res = await axios.delete(`https://www.strava.com/api/v3/push_subscriptions/${user.strava.subscription_id}`, {
           params: {
@@ -196,7 +196,7 @@ const useAuth = () => {
     } catch (err) {
       alert(JSON.stringify(err))
     } finally {
-      setAuthLoading(false);
+      setStravaAuthLoading(false);
     }
   }
 

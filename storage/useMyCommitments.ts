@@ -1,7 +1,7 @@
 import { useAtom } from "jotai";
-import { myWorkoutsState, userState } from "../storage/atomStorage";
+import { myWorkoutsState, userState } from "./atomStorage";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { FIRESTORE_DB } from "../../firebaseConfig";
+import { FIRESTORE_DB } from "../firebaseConfig";
 import { useEffect } from "react";
 
 const useMyCommitments = () => {

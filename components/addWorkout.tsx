@@ -3,13 +3,14 @@
 // import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { useRef, useState } from "react";
-import { DismissKeyboard } from "../screens/login";
+import DismissKeyboard from "@/components/dismissKeyboard";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { collection, addDoc, serverTimestamp, setDoc, updateDoc, doc, DocumentReference } from 'firebase/firestore';
-import { FIRESTORE_DB } from "../../firebaseConfig";
+import { FIRESTORE_DB } from "../firebaseConfig";
 import { useAtom } from "jotai";
-import { userState } from "../storage/atomStorage";
+import { userState } from "@/storage/atomStorage";
 import SpinLoader from "./spinLoader";
+
 
 
 const AddWorkoutModal = ({ onClose }: { onClose: () => void }) => {

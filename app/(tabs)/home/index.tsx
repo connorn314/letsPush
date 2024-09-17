@@ -1,31 +1,30 @@
 // import { collection, onSnapshot } from "firebase/firestore";
-import { View, Text, TouchableOpacity, FlatList, Keyboard, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Keyboard, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FIREBASE_AUTH, FIREBASE_FUNCTIONS, helloWorld } from "../../firebaseConfig";
-// import { Teko_400Regular, useFonts } from "@expo-google-fonts/teko";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAtom } from "jotai";
-import { authLoadingState, friendCommitmentsState, userState } from "../storage/atomStorage";
 import { signOut } from "firebase/auth";
-// import { useNavigation } from "@react-navigation/native";
-// import { collection, onSnapshot, query, where } from "firebase/firestore";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Feather from '@expo/vector-icons/Feather';
-// import { FIRESTORE_DB } from "../../firebaseConfig";
-import CommitmentCard from "../components/commitmentCard";
 import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
-// import SpinLoader from "../components/spinLoader";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-// import axios from 'axios';
-// import Auth from '../components/auth';
-import useAuth from '../storage/useAuth';
+import Svg, { G, Rect, Path } from "react-native-svg"
+import { stravaAuthLoadingState, friendCommitmentsState, userState } from '@/storage/atomStorage';
+import useAuth from '@/storage/useAuth';
+import { FIREBASE_AUTH } from '@/firebaseConfig';
+import CommitmentCard from '@/components/commitmentCard';
+import WeeklyCalendarDisplay from '@/components/weeklyDisplay';
+import FadeInViewWrapper from '@/components/fadeInViewWrapper';
+import SpinLoader from '@/components/spinLoader';
+import NotificationsModal from '@/components/notificationsModal';
+import { useRouter } from 'expo-router';
 
+const HomeScreen = () => {
 
-const HomeScreen = ({ navigation }: any) => {
-
+    const router = useRouter();
     const [user,] = useAtom(userState);
     const [friendCommitments,] = useAtom(friendCommitmentsState);
-    const [authLoading,] = useAtom(authLoadingState);
+    const [stravaAuthLoading,] = useAtom(stravaAuthLoadingState);
 
     // const appImage = require('../../assets/images/btn_strava_connectwith_orange.png');
 
@@ -41,6 +40,11 @@ const HomeScreen = ({ navigation }: any) => {
         bottomSheetModalRef.current?.present()
     }, []);
 
+    const handleClosePress = () => {
+        setTest(-1)
+        bottomSheetModalRef?.current?.close()
+    }
+
     const handlePresentNotifications = useCallback(() => {
         setSecond(0)
         notificationModalRef.current?.present()
@@ -48,6 +52,7 @@ const HomeScreen = ({ navigation }: any) => {
 
     const handleSignOut = async () => {
         try {
+            handleClosePress()
             await signOut(FIREBASE_AUTH);
             // setUser(null);
         } catch (err: any) {
@@ -87,11 +92,14 @@ const HomeScreen = ({ navigation }: any) => {
                     </View>
                     <View className="w-full ">
                         <ScrollView className="h-full">
-                            <WeeklyCalendarDisplay navigation={navigation} />
+                            <WeeklyCalendarDisplay />
                             <FadeInViewWrapper>
                                 {friendCommitments.sort((a, b) => a.startDate.toDate().getTime() - b.startDate.toDate().getTime()).map(item => (
-                                    <CommitmentCard key={`${item.id}`} commitment={item} onPress={() => navigation.navigate("Home Workout Details", {
-                                        workoutDetails: item
+                                    <CommitmentCard key={`${item.id}`} commitment={item} onPress={() => router.push({
+                                        pathname: `/commitment/[commitmentId]`,
+                                        params: {
+                                            commitmentId: item.id
+                                        }
                                     })} />
                                 ))}
                             </FadeInViewWrapper>
@@ -118,7 +126,7 @@ const HomeScreen = ({ navigation }: any) => {
                     <View className='h-[90%] justify-between items-center space-y-2 p-4'>
                         {(user?.strava?.expires_at && (user?.strava?.expires_at > (Date.now() / 1000)) && user?.strava?.subscription_id) ? (
                             <TouchableOpacity className={` bg-[#FC4C02] h-[56px] rounded mb-2 w-full items-center justify-center `} onPress={stravaRemoveAuthentication}>
-                                {authLoading ? (
+                                {stravaAuthLoading ? (
                                     <View className='p-2'>
                                         <SpinLoader color='white' size={20} />
                                     </View>
@@ -128,7 +136,7 @@ const HomeScreen = ({ navigation }: any) => {
                             </TouchableOpacity>
                         ) : (
                             <TouchableOpacity className={` bg-[#FC4C02] h-[56px] rounded py-1  w-full items-center justify-center`} onPress={performOAuth}>
-                                {authLoading ? (
+                                {stravaAuthLoading ? (
                                     <View className='p-2'>
                                         <SpinLoader color='white' size={20} />
                                     </View>
@@ -177,11 +185,7 @@ const HomeScreen = ({ navigation }: any) => {
 
 export default HomeScreen;
 
-import Svg, { G, Rect, Path } from "react-native-svg"
-import SpinLoader from '../components/spinLoader';
-import WeeklyCalendarDisplay from '../components/weeklyDisplay';
-import FadeInViewWrapper from '../components/fadeInViewWrapper';
-import NotificationsModal from './notificationsModal';
+
 /* SVGR has dropped some elements not supported by react-native-svg: title */
 export const SvgComponent = (props: any) => (
     <Svg xmlns="http://www.w3.org/2000/svg" width={193} height={48} {...props}>

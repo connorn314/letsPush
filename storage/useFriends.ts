@@ -1,7 +1,7 @@
 import { useAtom } from "jotai";
-import { myFriends, userState } from "../storage/atomStorage";
+import { myFriends, userState } from "./atomStorage";
 import { collection, documentId, onSnapshot, query, where } from "firebase/firestore";
-import { FIRESTORE_DB } from "../../firebaseConfig";
+import { FIRESTORE_DB } from "../firebaseConfig";
 import { useEffect } from "react";
 
 const useFriends = () => {

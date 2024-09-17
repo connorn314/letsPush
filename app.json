@@ -16,7 +16,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.connorn314.letsPush",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": ["strava"]
+        "LSApplicationQueriesSchemes": [
+          "strava"
+        ]
       }
     },
     "android": {
@@ -32,6 +34,13 @@
       "eas": {
         "projectId": "9dbe24cb-8450-4530-a7f3-db311e170ca4"
       }
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "tsconfigPaths": true
     }
   }
 }

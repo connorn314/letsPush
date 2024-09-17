@@ -1,9 +1,15 @@
 import { useAtom } from "jotai";
 import { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { myWorkoutsState } from "../storage/atomStorage";
+import { myWorkoutsState } from "@/storage/atomStorage";
 import FadeInViewWrapper from "./fadeInViewWrapper";
 import PersonalCommitmentCard from "./personalCommitmentCard";
+import { NativeWindStyleSheet } from "nativewind";
+import { useRouter } from "expo-router";
+
+NativeWindStyleSheet.setOutput({
+    default: "native",
+});
 
 const daysOfWeek = () => {
     const weekDays = [];
@@ -27,13 +33,10 @@ const daysOfWeek = () => {
     return weekDays;
 }
 
-const WeeklyCalendarDisplay = ({ navigation }: { navigation: any }) => {
+const WeeklyCalendarDisplay = () => {
 
-    const dateToday = (new Date()).getDate();
-    const monthToday = (new Date()).getMonth() + 1;
-    const yearToday = (new Date()).getFullYear();
-
-    const [weekdays, setWeekdays] = useState(daysOfWeek);
+    const router = useRouter();
+    const [weekdays, ] = useState(daysOfWeek);
     const [currSelection, setCurrSelection] = useState(daysOfWeek().find(selection => selection.today))
     const [myCommitments,] = useAtom(myWorkoutsState);
 
@@ -69,8 +72,11 @@ const WeeklyCalendarDisplay = ({ navigation }: { navigation: any }) => {
                         && commit.startDate.toDate().getMonth() + 1 === currSelection?.month
                         && commit.startDate.toDate().getFullYear() === currSelection?.year)).map(commit => (
                             <PersonalCommitmentCard key={`a_${commit.id}`} item={commit} onPress={() => {
-                                navigation.navigate("Personal Workout Details", {
-                                    workoutDetails: commit
+                                router.push({
+                                    pathname: `/commitment/[commitmentId]`,
+                                    params: {
+                                        commitmentId: commit.id
+                                    }
                                 })
                             }} />
                         ))}

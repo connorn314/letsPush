@@ -1,23 +1,18 @@
-
-import { View, Text, KeyboardAvoidingView, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Image, Button, ScrollView, FlatList } from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { myWorkoutsState } from "@/storage/atomStorage";
+import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useAtom } from "jotai";
 import { LinearGradient } from "expo-linear-gradient";
+import { useCallback, useRef, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import NotificationsModal from "@/components/notificationsModal";
+import AddWorkoutModal from "@/components/addWorkout";
+import { Keyboard, StyleSheet, TouchableOpacity, View, Text, ScrollView } from "react-native";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Entypo from '@expo/vector-icons/Entypo';
-import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
-// import SpinLoader from "../components/spinLoader";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import AddWorkoutModal from "../components/addWorkout";
-import { StyleSheet } from "react-native";
-// import { Workout } from "../types/workouts";
-import { useAtom } from "jotai";
-import { myWorkoutsState } from "../storage/atomStorage";
-import PersonalCommitmentCard from "../components/personalCommitmentCard";
-import NotificationsModal from "./notificationsModal";
-// import { Timestamp } from "firebase/firestore";
+import PersonalCommitmentCard from "@/components/personalCommitmentCard";
+import { useRouter } from "expo-router";
 
-
-const WorkoutsScreen = ({ navigation }: any) => {
+const WorkoutsPage = () => {
 
     // const [user,] = useAtom(userState);
     const [workouts,] = useAtom(myWorkoutsState);
@@ -25,6 +20,8 @@ const WorkoutsScreen = ({ navigation }: any) => {
 
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const notificationModalRef = useRef<BottomSheetModal>(null);
+
+    const router = useRouter();
     
     const [second, setSecond] = useState(-1);
     // // callbacks
@@ -70,8 +67,11 @@ const WorkoutsScreen = ({ navigation }: any) => {
                         <ScrollView className="h-full" >
                             {workouts.sort((a, b) => a.startDate.toDate().getTime() - b.startDate.toDate().getTime()).map(item => (
                                 <PersonalCommitmentCard key={`${item.id}`} item={item} onPress={() => {
-                                    navigation.navigate("Personal Workout Details", {
-                                        workoutDetails: item
+                                    router.push({
+                                        pathname: `/commitment/[commitmentId]`,
+                                        params: {
+                                            commitmentId: item.id
+                                        }
                                     })
                                 }} />
                             ))}
@@ -116,23 +116,4 @@ const WorkoutsScreen = ({ navigation }: any) => {
     )
 }
 
-export default WorkoutsScreen;
-
-{/* <BottomSheet
-    ref={bottomSheetRef}
-    index={test} // If the index value is set to -1, the sheet will initialize in a closed state.
-    detached={false} // Determines if the bottom sheet is attached to the bottom or not.
-    snapPoints={["90%"]}
-    enablePanDownToClose
-    backdropComponent={props => (<BottomSheetBackdrop {...props}
-        opacity={0.5}
-        enableTouchThrough={false}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        style={[{ backgroundColor: 'rgba(0, 0, 0, 1)' }, StyleSheet.absoluteFillObject]} />)}
-    onChange={(index) => {
-        if (index === -1) { Keyboard.dismiss() }
-    }}
->
-    <AddWorkoutModal onClose={() => handleClosePress()} />
-</BottomSheet> */}
+export default WorkoutsPage;

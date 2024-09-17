@@ -1,14 +1,13 @@
 import { View, Text, KeyboardAvoidingView, TextInput, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 
-import { FIREBASE_AUTH } from "../../firebaseConfig";
+import { FIREBASE_AUTH } from "../firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 // import { useAtom } from "jotai";
 // import { userState } from "../storage/atomStorage";
 // import {SocialIcon, SocialMediaType} from "@rneui/themed";
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import SpinLoader from "./spinLoader";
-import { User } from "../types/user";
 
 const SignIn = ({onClose}:{onClose: () => void}) => {
 

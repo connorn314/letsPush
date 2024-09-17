@@ -1,21 +1,19 @@
-
-import { View, TextInput, Text, FlatList, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from 'react';
-// import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DismissKeyboard } from './login';
-import Feather from '@expo/vector-icons/Feather';
-import { myFriends, userState } from '../storage/atomStorage';
-// import { collection, doc, getDoc, onSnapshot, query, where, documentId } from 'firebase/firestore';
-// import { FIRESTORE_DB } from '../../firebaseConfig';
 import { useAtom } from "jotai";
+import { useState } from "react";
+import { myFriends } from "@/storage/atomStorage";
+import { SafeAreaView } from "react-native-safe-area-context";
+import DismissKeyboard from "@/components/dismissKeyboard";
+import { LinearGradient } from "expo-linear-gradient";
+import { View, Text, TextInput, FlatList, TouchableOpacity } from "react-native";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useRouter } from "expo-router";
+import Animated from "react-native-reanimated";
 
-const FriendsScreen = () => {
+const FriendsPage = () => {
 
     const [searchInput, setSearchInput] = useState("");
     const [friends, ] = useAtom(myFriends);
+    const router = useRouter();
 
     // const [user,] = useAtom(userState);
 
@@ -53,10 +51,19 @@ const FriendsScreen = () => {
                                         <TouchableOpacity className="bg-[#ffffff] border-rounded-full w-full rounded-lg p-4 justify-center items-start"
                                             onPress={() => {
                                                 // playSound(mediaData[idx].url)
-                                                alert("Eventually take to a friends detail screen")
+                                                router.push({
+                                                    pathname: "/profile/[userId]",
+                                                    params: {
+                                                        userId: item.id,
+                                                        name: item.name
+                                                    }
+                                                })
                                             }}  >
                                             <View className="flex-row items-center w-full">
-                                                <View className="grow">
+                                                <Animated.View className="justify-center items-center h-12 w-12 bg-orange-500" sharedTransitionTag="tag">
+                                                    {/* <Text className="text-white">{item.name.length ? item.name[0].toLocaleUpperCase() : "U"}</Text> */}
+                                                </Animated.View>
+                                                <View className="grow ml-2">
                                                     <Text className="text-lg">{item.name}</Text>
                                                 </View>
                                             </View>
@@ -71,4 +78,4 @@ const FriendsScreen = () => {
     )
 }
 
-export default FriendsScreen;
+export default FriendsPage;

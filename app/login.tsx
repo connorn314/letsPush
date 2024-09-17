@@ -2,21 +2,20 @@ import { View, Text, KeyboardAvoidingView, TextInput, TouchableOpacity, Touchabl
 import { StyleSheet } from "react-native";
 import React, { useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FIREBASE_AUTH, FIRESTORE_DB } from "../../firebaseConfig";
+import { FIREBASE_AUTH, FIRESTORE_DB } from "@/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useAtom } from "jotai";
-import { userState } from "../storage/atomStorage";
 // import {SocialIcon, SocialMediaType} from "@rneui/themed";
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
-import SpinLoader from "../components/spinLoader";
-import SignIn from "../components/signUp";
+import SpinLoader from "@/components/spinLoader";
+import SignIn from "@/components/signUp";
+import DismissKeyboard from "@/components/dismissKeyboard";
 // import CustomBackdrop from "../components/CustomBackdrop";
 
 const Login = ({ navigation }: any) => {
 
 
-    const appImage = require('../../assets/images/icon.png');
+    const appImage = require('@/assets/images/icon.png');
     // const [user, setUser] = useAtom(userState);
     // const [withPassword, setWithPassword] = useState(false);
 
@@ -205,12 +204,6 @@ const Login = ({ navigation }: any) => {
         </SafeAreaView>
     )
 };
-
-export const DismissKeyboard = ({ children }: any) => (
-    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}> 
-        {children}
-    </TouchableWithoutFeedback>
-);
 
 
 export default Login;
