@@ -15,7 +15,7 @@ import CommitmentCard from "@/components/commitmentCard";
 
 const ProfilePage = () => {
 
-    const { userId, name } = useLocalSearchParams();
+    const { userId } = useLocalSearchParams();
     const router = useRouter();
 
     const [friends,] = useAtom(myFriends);
@@ -34,7 +34,6 @@ const ProfilePage = () => {
                 next: (snapshot) => {
                     const workoutsArr: any[] = [];
                     snapshot.docs.forEach(doc => {
-    
                         // const tourStops = doc.data()
                         // console.log(doc.data(), console.log(doc.id))
                         workoutsArr.push({ id: doc.id, ...doc.data() })
@@ -68,13 +67,13 @@ const ProfilePage = () => {
                                 <View className=" h-3/4 w-screen justify-start items-center">
 
                                     <View className={`rounded-full -mt-16 border-white border-4 justify-center items-center h-32 w-32 bg-orange-500`}>
-                                        <Text className={`text-4xl font-semibold text-center text-white `}>{`${name[0]?.toLocaleUpperCase() ?? "N"}`}</Text>
+                                        <Text className={`text-4xl font-semibold text-center text-white `}>{`${profile?.name[0]?.toLocaleUpperCase() ?? "N"}`}</Text>
                                     </View>
                                     <View className="">
-                                        <Text className="w-fit text-2xl font-medium">{name}</Text>
+                                        <Text className="w-fit text-2xl font-medium">{profile?.name}</Text>
                                     </View>
                                     <View className="p-4 w-full items-center justify-center">
-                                        <Text>I am the profile page of user: {name}</Text>
+                                        <Text>I am the profile page of user: {profile?.name}</Text>
                                         {profile && (
                                             <>
                                                 <Text>Account created: {new Date(profile.created_at).toDateString()}</Text>
@@ -100,9 +99,6 @@ const ProfilePage = () => {
                     </View>
                 </View>
             </SafeAreaView>
-            {/* <TouchableOpacity onPress={() => navigation.back()} className={`bg-blue-600 rounded`}>
-                    <Text className="text-white py-4 px-8">Back to all</Text>
-                </TouchableOpacity> */}
         </View>
     )
 }

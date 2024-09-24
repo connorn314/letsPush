@@ -1,4 +1,4 @@
-import { myWorkoutsState } from "@/storage/atomStorage";
+import { lockPageOnCarousel, myWeekPlansState, myWorkoutsState } from "@/storage/atomStorage";
 import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useAtom } from "jotai";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,11 +11,16 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Entypo from '@expo/vector-icons/Entypo';
 import PersonalCommitmentCard from "@/components/personalCommitmentCard";
 import { useRouter } from "expo-router";
+import AddWeeklyCommitmentsModal from "@/components/addWeeklyCommitments";
+import WeeklyCommitmentsDisplay from "@/components/weeklyCommitmentsCard";
 
 const WorkoutsPage = () => {
 
     // const [user,] = useAtom(userState);
     const [workouts,] = useAtom(myWorkoutsState);
+    const [weekPlans, ] = useAtom(myWeekPlansState);
+
+    const [lockPage, setLockPage] = useAtom(lockPageOnCarousel);
     // const [loading, setLoading] = useState(false);
 
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -62,18 +67,25 @@ const WorkoutsPage = () => {
                             <FontAwesome5 name="bell" size={24} color="black" />
                         </TouchableOpacity>
                     </View>
-                    <View className="w-full px-4">
+                    <View className="w-full">
 
-                        <ScrollView className="h-full" >
-                            {workouts.sort((a, b) => a.startDate.toDate().getTime() - b.startDate.toDate().getTime()).map(item => (
-                                <PersonalCommitmentCard key={`${item.id}`} item={item} onPress={() => {
-                                    router.push({
-                                        pathname: `/commitment/[commitmentId]`,
-                                        params: {
-                                            commitmentId: item.id
-                                        }
-                                    })
-                                }} />
+                        <ScrollView className="h-full w-full" >
+                            {weekPlans.map(plan => (
+                                <WeeklyCommitmentsDisplay key={plan.id} weekPlanData={plan} />
+                            ))}
+
+                            <Text className="font-medium text-xl p-4">Individual Commitments</Text>
+                            {workouts.sort((a, b) => b.startDate.toDate().getTime() - a.startDate.toDate().getTime()).map(item => (
+                                <View className="px-4" key={`${item.id}`}>
+                                    <PersonalCommitmentCard  item={item} onPress={() => {
+                                        router.push({
+                                            pathname: `/commitment/[commitmentId]`,
+                                            params: {
+                                                commitmentId: item.id
+                                            }
+                                        })
+                                    }} />
+                                </View>
                             ))}
                         </ScrollView>
 
@@ -83,7 +95,7 @@ const WorkoutsPage = () => {
                     ref={bottomSheetModalRef}
                     index={test}
                     snapPoints={["100%"]}
-                    // enablePanDownToClose
+                    enablePanDownToClose={!lockPage}
                     backdropComponent={props => (<BottomSheetBackdrop {...props}
                         opacity={0.5}
                         enableTouchThrough={false}
@@ -91,10 +103,14 @@ const WorkoutsPage = () => {
                         disappearsOnIndex={-1}
                         style={[{ backgroundColor: 'rgba(0, 0, 0, 1)' }, StyleSheet.absoluteFillObject]} />)}
                     onChange={(index) => {
-                        if (index === -1) { Keyboard.dismiss() }
+                        if (index === -1) { 
+                            Keyboard.dismiss()
+                            setLockPage(false)
+                        }
                     }}
                 >
-                    <AddWorkoutModal onClose={() => handleClosePress()} />
+                    {/* <AddWorkoutModal onClose={() => handleClosePress()} /> */}
+                    <AddWeeklyCommitmentsModal onClose={() => handleClosePress()} />
                 </BottomSheetModal>
 
             </SafeAreaView>

@@ -92,7 +92,8 @@ const RootLayoutNav = () => {
             created_at: Date.now(),
             friends: [],
             pushToken: expoToken || "",
-            workouts: []
+            workouts: [],
+            weekPlans: []
         }
         // console.log("userData", userData)
         await setDoc(doc(FIRESTORE_DB, "users", userObj.uid), userData);

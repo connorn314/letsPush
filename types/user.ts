@@ -1,4 +1,4 @@
-import { Workout } from "./workouts";
+import { WeekOfCommitments, Workout } from "./workouts";
 
 
 export interface User {
@@ -8,4 +8,5 @@ export interface User {
     friends: string[];
     pushToken: string;
     workouts: Workout[];
+    workoutPlans: WeekOfCommitments[]
 }

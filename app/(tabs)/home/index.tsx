@@ -18,6 +18,7 @@ import FadeInViewWrapper from '@/components/fadeInViewWrapper';
 import SpinLoader from '@/components/spinLoader';
 import NotificationsModal from '@/components/notificationsModal';
 import { useRouter } from 'expo-router';
+import WeeklyCommitmentsDisplay from '@/components/weeklyCommitmentsCard';
 
 const HomeScreen = () => {
 
@@ -93,16 +94,14 @@ const HomeScreen = () => {
                     <View className="w-full ">
                         <ScrollView className="h-full">
                             <WeeklyCalendarDisplay />
-                            <FadeInViewWrapper>
-                                {friendCommitments.sort((a, b) => a.startDate.toDate().getTime() - b.startDate.toDate().getTime()).map(item => (
-                                    <CommitmentCard key={`${item.id}`} commitment={item} onPress={() => router.push({
-                                        pathname: `/commitment/[commitmentId]`,
-                                        params: {
-                                            commitmentId: item.id
-                                        }
-                                    })} />
-                                ))}
-                            </FadeInViewWrapper>
+                            {friendCommitments.sort((a, b) => a.startDate.toDate().getTime() - b.startDate.toDate().getTime()).map(item => (
+                                <CommitmentCard key={`${item.id}`} commitment={item} onPress={() => router.push({
+                                    pathname: `/commitment/[commitmentId]`,
+                                    params: {
+                                        commitmentId: item.id
+                                    }
+                                })} />
+                            ))}
                         </ScrollView>
 
                     </View>
@@ -172,9 +171,9 @@ const HomeScreen = () => {
                         appearsOnIndex={0}
                         disappearsOnIndex={-1}
                         style={[{ backgroundColor: 'rgba(0, 0, 0, 1)' }, StyleSheet.absoluteFillObject]} />)}
-                    // onChange={(index) => {
-                    //     if (index === -1) { Keyboard.dismiss() }
-                    // }}
+                // onChange={(index) => {
+                //     if (index === -1) { Keyboard.dismiss() }
+                // }}
                 >
                     <NotificationsModal />
                 </BottomSheetModal>

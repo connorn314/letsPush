@@ -49,3 +49,56 @@ export const formatTime = (timeObject: { hours: number, minutes: number, seconds
 
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 }
+
+export const daysOfWeek = (referenceDay?: Date) => { // reference day = 2024/9/30
+    const weekDays = [];
+    // console.log(referenceDay, "referenceDay")
+    const today = referenceDay ? new Date(referenceDay) : new Date();
+    // console.log(today.toDateString())
+    const currentDay = today.getDay(); // Get the current day (0 = Sunday, 6 = Saturday)
+
+    // Loop through the week starting from Sunday (0) to Saturday (6)
+    for (let i = 0; i < 7; i++) {
+        const date = referenceDay ? new Date(referenceDay) : new Date();
+        date.setDate(today.getDate() - currentDay + i); // Set the date for each day of the week
+
+        // Create an object for each day
+        weekDays.push({
+            day: date.getDate(),
+            month: date.getMonth() + 1, // Months are 0-indexed, so add 1
+            monthString: date.toLocaleString('default', { month: 'short' }),
+            year: date.getFullYear(),
+            simpleString: `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`,
+            today: date.toDateString() === new Date().toDateString()
+        });
+    }
+
+    return weekDays;
+}
+
+export const dayToSimpleString = (date: Date) => {
+    // console.log("recieving date", date.toDateString(), date.getDate())
+    const day = date.getDate();
+    const month = (date.getMonth() + 1) % 12; // Months are 0-indexed, so add 1
+    const year = date.getFullYear();
+    return `${year}/${month}/${day}`
+}
+
+
+export const getSundayOfWeek = (date: Date): string => {
+    // Get the day of the week (0 for Sunday, 1 for Monday, etc.)
+    const dayOfWeek = date.getDay();
+    
+    // Calculate the difference to the previous Sunday
+    const diffToSunday = date.getDate() - dayOfWeek;
+    
+    // Create a new date for the Sunday of that week
+    const sundayDate = new Date(date.setDate(diffToSunday));
+    
+    // Format the date as YYYY/M/D
+    const year = sundayDate.getFullYear();
+    const month = sundayDate.getMonth() + 1; // Months are 0-indexed
+    const day = sundayDate.getDate();
+    
+    return `${year}/${month}/${day}`;
+  }

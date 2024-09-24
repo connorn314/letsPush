@@ -5,7 +5,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 const PersonalCommitmentCard = ({ item, onPress }: {item: Workout; onPress: () => void;}) => {
     const date = item.startDate.toDate();
     return (
-        <TouchableOpacity key={`${item.id}`} className="bg-[#ffffff] shadow-sm border-rounded-full w-full rounded-lg p-4 my-1 flex-row justify-start items-center"
+        <TouchableOpacity  className="bg-[#ffffff] shadow-sm border-rounded-full w-full rounded-lg p-4 my-1 flex-row justify-start items-center"
             onPress={onPress}  >
             <View className={`rounded-md justify-center items-center h-16 w-16 ${item.status === "complete" ? "bg-green-300" : (item.status === "failure" ? "bg-red-400" : "bg-slate-200")}`}>
                 <Text className={`text-lg text-center `}>{`${date.getMonth() + 1}/${date.getDate()}`}</Text>
