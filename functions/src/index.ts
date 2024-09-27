@@ -8,8 +8,9 @@
  */
 
 import * as functions from "firebase-functions";
-import { onDocumentUpdated } from "firebase-functions/v2/firestore"
-import {logger} from "firebase-functions";
+import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
 import { DocumentData, Timestamp } from "firebase-admin/firestore";
 import axios from "axios";
@@ -39,8 +40,8 @@ export const stravaWebhook = functions.https.onRequest(async (req, res) => {
 
   if (req.method === 'POST') {
     const { owner_id, event_time, object_id, object_type, aspect_type } = req.body
-    if (object_type === "activity" && aspect_type === "create" && owner_id && event_time){
-      try{
+    if (object_type === "activity" && aspect_type === "create" && owner_id && event_time) {
+      try {
         const usersRef = db.collection("users");
         const userSnapshot = await usersRef.where("strava_athlete_id", "==", Number(owner_id)).limit(1).get();
 
@@ -55,23 +56,25 @@ export const stravaWebhook = functions.https.onRequest(async (req, res) => {
         const commitmentsRef = db.collection("commitments");
         const commitmentsSnap = await commitmentsRef.where("userId", "==", userId).get();
 
-        if (commitmentsSnap.empty){
+        if (commitmentsSnap.empty) {
           logger.error("No commitments found")
           res.status(200).send("No commitments found");
         }
 
         const activityTime = new Date(Number(event_time) * 1000);
+        // timezone offset is -7 but eventually will be dynamic - think of as + (timzoneoffset)
+        activityTime.setUTCHours(activityTime.getUTCHours() - 7)
 
         const matchingCommitment = commitmentsSnap.docs.find(commitment => {
           const time = (commitment.data().startDate as Timestamp).toDate();
 
           // account for timezone soon (from 5pm to midnight this timezone is a day ahead of utc)
-          return (time.getFullYear() === activityTime.getFullYear() 
-            && time.getMonth() === activityTime.getMonth() 
-            && time.getDate() === activityTime.getDate())
+          return (time.getUTCFullYear() === activityTime.getUTCFullYear()
+            && time.getUTCMonth() === activityTime.getUTCMonth()
+            && time.getUTCDate() === activityTime.getUTCDate())
         })
 
-        if (!matchingCommitment){
+        if (!matchingCommitment) {
           logger.error("No commitments found matching the activity date")
           res.status(200).send("No commitments found matching the activity date");
         }
@@ -90,11 +93,11 @@ export const stravaWebhook = functions.https.onRequest(async (req, res) => {
         res.status(500).send("Internal Server Error");
       }
     }
-    logger.info(JSON.stringify(req.body), {structuredData: true});
+    logger.info(JSON.stringify(req.body), { structuredData: true });
     res.status(200).json({});
   }
 
-  res.status(400).json({"message": "bad request"})
+  res.status(400).json({ "message": "bad request" })
   // Respond with 200 and no content for non-GET requests
 });
 
@@ -106,20 +109,21 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
   }
 
   const data = event.data.after.data();
+  const id = event.data.after.id
 
-  if (!data['strava_activity_id']){
+  if (!data['strava_activity_id']) {
     logger.info("no commitment.strava_activity_id")
     return null;
   }
   // const previousData = event.data.before.data();
-  if (data['strava'] && data.strava['distance'] && data.strava['moving_time'] && data.strava['elapsed_time']){
+  if (data['strava'] && data.strava['distance'] && data.strava['moving_time'] && data.strava['elapsed_time']) {
     logger.info("strava info updated already, assume push already sent")
     return null;
   }
 
-  const handlePushReceiptError = async ({ expoPushToken, error } : { expoPushToken?: string; error?: "DeveloperError" | "DeviceNotRegistered" | "ExpoError" | "InvalidCredentials" | "MessageRateExceeded" | "MessageTooBig" | "ProviderError"}) => {
+  const handlePushReceiptError = async ({ expoPushToken, error }: { expoPushToken?: string; error?: "DeveloperError" | "DeviceNotRegistered" | "ExpoError" | "InvalidCredentials" | "MessageRateExceeded" | "MessageTooBig" | "ProviderError" }) => {
     if (!error) return;
-    if (error === "DeviceNotRegistered"){
+    if (error === "DeviceNotRegistered") {
       logger.error("attempting to send push notification to device no longer registered")
       if (!expoPushToken) return;
       const usersWithTokenSnaps = await db.collection("users").where("pushToken", "==", expoPushToken).get();
@@ -139,7 +143,7 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
   const refreshToken = async (token: string) => {
     try {
       const strava = await db.doc('/adminOnly/vars').get();
-      if (!(strava.exists && strava.data())){
+      if (!(strava.exists && strava.data())) {
         logger.error("can't reach strava variables")
         return;
       }
@@ -168,12 +172,12 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
   try {
     // get user
     const userStravaDetailsSnap = await db.doc(`/users/${data.userId}/strava/me`).get();
-    if (!userStravaDetailsSnap.exists || !userStravaDetailsSnap.data()?.access_token){
+    if (!userStravaDetailsSnap.exists || !userStravaDetailsSnap.data()?.access_token) {
       logger.error(`not finding strava details for this user, id: ${data.userId}`);
       return;
     }
     let token = userStravaDetailsSnap.data()?.access_token;
-    if (userStravaDetailsSnap.data()?.expires_at < (Date.now() / 1000)){
+    if (userStravaDetailsSnap.data()?.expires_at < (Date.now() / 1000)) {
       token = (await refreshToken(userStravaDetailsSnap.data()?.refresh_token as string)).access_token
     }
 
@@ -185,7 +189,7 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
 
     const { sport_type, distance, moving_time, elapsed_time, total_elevation_gain } = activityDetails;
 
-    if (sport_type !== "TrailRun" && sport_type !== "Run"){
+    if (sport_type !== "TrailRun" && sport_type !== "Run") {
       logger.info("not a run activity, detach the activity_id association from commitment")
       return event.data.after.ref.update({
         strava_activity_id: admin.firestore.FieldValue.delete()
@@ -202,7 +206,8 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
         elapsed_time,
         total_elevation_gain
       },
-      status: "complete"
+      status: "complete",
+      updated_at: admin.firestore.FieldValue.serverTimestamp()
     });
 
     logger.info("just updated")
@@ -215,30 +220,43 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
     const friendsSnap = await db.collection("users").where(admin.firestore.FieldPath.documentId(), "in", friends).get();
     // logger.info("broken")
 
-    if (friendsSnap.empty){
+    if (friendsSnap.empty) {
       logger.info("this user has no friends, lol")
       return;
     }
 
     const messages: ExpoPushMessage[] = [];
+    const batch = db.batch()
+    const pushNotificationsRef = db.collection("push_notifications")
 
     // logger.info("defined vars at start of push notification section", friendsSnap.docs.map(fS => fS.data()?.name ?? "unknown name"))
-
     friendsSnap.forEach(fSnap => {
       if (!fSnap.exists) return;
       const { pushToken } = fSnap.data() as DocumentData;
 
       if (!pushToken || !Expo.isExpoPushToken(pushToken)) return;
       // logger.info(`Push token ${pushToken} is not a valid Expo push token`);
-      messages.push({
+      const notif: ExpoPushMessage = {
         to: pushToken,
         sound: 'default',
-        title: `${name} isn't weak!`,
-        body: `"${data.name}" commitment complete.`,
+        title: `${name} really did it.`,
+        body: `They complete "${data.name}" commitment.`,
         badge: 1,
-        data: { url: "bevvarra.com://testFilePath/wildcard" }
-      })
+        data: { url: `bevvarra.com://commitment/${id}` }
+      }
+      messages.push(notif);
+      const docRef = pushNotificationsRef.doc(); // Create a new document reference with a unique ID
+      batch.set(docRef, {
+        content: notif,
+        userId: fSnap.id,
+        created_at: admin.firestore.FieldValue.serverTimestamp(),
+        viewed: false
+      });
     })
+
+    batch.commit()
+      .then(() => logger.info("successfully created notifications"))
+      .catch(({ reason }) => logger.warn(`error creating notifications: ${JSON.stringify(reason)}`))
 
     const chunks = expo.chunkPushNotifications(messages);
     const tickets = [];
@@ -254,6 +272,8 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
       }
     }
 
+
+
     const receiptIds = [];
     for (let ticket of tickets) {
       // NOTE: Not all tickets have IDs; for example, tickets for notifications
@@ -261,7 +281,7 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
       // logger.info('creating receipt id array with tickets ^')
       if (ticket.status === 'ok') {
         receiptIds.push(ticket.id);
-      } else if (ticket.message){
+      } else if (ticket.message) {
         logger.warn(ticket.message)
       }
     }
@@ -272,7 +292,7 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
         // logger.info(`beginning to fetch receipts for this chunk: ${JSON.stringify(chunk)}`);
         const receipts = await expo.getPushNotificationReceiptsAsync(chunk);
         logger.info(`receipts: ${JSON.stringify(receipts)}`);
-  
+
         // The receipts specify whether Apple or Google successfully received the
         // notification and information about an error, if one occurred.
         for (let receiptId in receipts) {
@@ -284,7 +304,7 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
             logger.error(
               `There was an error sending a notification: ${message}`
             );
-            if (details && details.error) { handlePushReceiptError({ expoPushToken, error: details.error}) }
+            if (details && details.error) { handlePushReceiptError({ expoPushToken, error: details.error }) }
           }
         }
       } catch (error) {
@@ -298,3 +318,46 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
     return null;
   }
 })
+
+exports.scheduledUpdateCommitmentsStatus = onSchedule("every 1 hours", async (event) => {
+  // Get the current time
+  const pacificTime = new Date()
+
+  // 7 is the offset in california, eventually it will be dynamic to all timezones
+  const time = pacificTime.getUTCHours() >= 7 ? pacificTime.getUTCHours() - 7 : 24 - Math.abs(pacificTime.getUTCHours() - 7)
+  if (time !== 20) {
+    logger.info('Current time is not 8 PM Pacific Time. Exiting the function.');
+    return;
+  }
+  // minus six (-7 + 1) because it will take the timestamp to one hour past midnight 
+  // on the day the task was to be completed
+  pacificTime.setUTCHours(pacificTime.getUTCHours() - 6);
+
+  // Check if it's 8 PM in Pacific Time
+  // const year = pacificTime.getUTCFullYear();
+  // const month = pacificTime.getUTCMonth();
+  // const day = pacificTime.getUTCDate();
+
+  // const formattedTodayDate = `${year}/${month + 1}/${day}`
+
+  const commitmentsRef = admin.firestore().collection('commitments');
+
+  try {
+    const snapshot = await commitmentsRef
+      .where('startDate', '<=', pacificTime)
+      .where('status', '!=', 'complete')
+      .get();
+
+    const batch = admin.firestore().batch();
+
+    snapshot.forEach(doc => {
+      const docRef = commitmentsRef.doc(doc.id);
+      batch.update(docRef, { status: 'failure', updated_at: admin.firestore.FieldValue.serverTimestamp() });
+    });
+
+    await batch.commit();
+    logger.info(`Updated ${snapshot.size} documents to status 'failure'.`);
+  } catch (error) {
+    logger.error('Error updating commitments:', error);
+  }
+});

@@ -64,6 +64,7 @@ const OneWeekSlide = ({ days }: { days: MyDate[] }) => {
             }, 0)
         }
     }, [startEditing])
+
     return (
         <View className={"w-screen justify-center items-center relative bg-white "}>
             <View className="absolute top-10 h-16  justify-center items-center bg-white">

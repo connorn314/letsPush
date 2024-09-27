@@ -38,7 +38,8 @@ const HomeLayout = () => {
     }, []);
 
     if (!loading && !user){
-        return <Redirect href={"/login"} />
+        // return <Redirect href={"/login"} />
+        return <Redirect href={"/onboarding"} />
     }
 
     return (
@@ -48,15 +49,19 @@ const HomeLayout = () => {
         }} >
             <Tabs.Screen options={{
                 headerShown: false,
-                tabBarIcon: props => <TabIcon {...props} icon="Friends" />
+                tabBarIcon: props => <TabIcon {...props} icon="Friends" />,
+                title: "Friends"
             }} name="friends/index"  />
             <Tabs.Screen options={{
                 headerShown: false,
-                tabBarIcon: props => <TabIcon {...props} icon="Home" />
+                tabBarIcon: props => <TabIcon {...props} icon="Home" />,
+                title: "Home"
             }} name="home/index" />
             <Tabs.Screen options={{
                 headerShown: false,
-                tabBarIcon: props => <TabIcon {...props} icon="Workouts" />
+                tabBarIcon: props => <TabIcon {...props} icon="Workouts" />,
+                title: "Workouts"
+
             }} name="commitments/index" />
         </Tabs>
     )

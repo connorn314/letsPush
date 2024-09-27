@@ -2,30 +2,36 @@ import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { daysOfWeek, dayToSimpleString } from "@/util/helpers";
+import { daysOfWeek, dayToSimpleString, generateTotalTime, metersToMiles, parsePace } from "@/util/helpers";
 import AnimatedBar from "./singleBar";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { MyDate, WeekOfCommitments, Workout } from "@/types/workouts";
-import { myWorkoutsState } from "@/storage/atomStorage";
+import { friendCommitmentsState, myWorkoutsState } from "@/storage/atomStorage";
 
 
 const WeeklyCommitmentsDisplay = ({
     weekPlanData,
+    personal
 }:{
     weekPlanData: WeekOfCommitments;
+    personal?: boolean
 }) => {
 
     const [year, month, day] = weekPlanData.start.split("/")
 
     const router = useRouter();
     const [workouts, ] = useAtom(myWorkoutsState);
+    const [friendCommitments, ] = useAtom(friendCommitmentsState);
     
     const [weekdays,] = useState(daysOfWeek(new Date(Number(year), Number(month) - 1, Number(day))));
     const [commitments, setCommitments] = useState<Workout[] | null>(null);
-    const [actualHeights, setActualHeights] = useState<number [] | null>(null)
-    const [goalHeights, setGoalHeights] = useState<number [] | null>(null)
+    const [actualHeights, setActualHeights] = useState<number [] | null>(null);
+    const [goalHeights, setGoalHeights] = useState<number [] | null>(null);
+
+    const [completionRate, setCompletionRate] = useState(1);
+    const [paceDiff, setPaceDiff] = useState(0);
 
     function scaleToMaxHeight(maxHeight: number, overallMax: number, values: number[]): number[] {
         if (values.length === 0) return []; // Return an empty array if no values are provided
@@ -40,8 +46,10 @@ const WeeklyCommitmentsDisplay = ({
     }
 
     useEffect(() => {
-        if (!weekdays || !weekPlanData) return;
-        const actualCommitments = weekPlanData.commitments.map(commitId => workouts.find(work => work.id === commitId)).filter(com => com)
+        if (!weekdays || !weekPlanData || !friendCommitments || !workouts) return;
+        const actualCommitments = weekPlanData.commitments.map(commitId => {
+            return personal ? workouts.find(work => work.id === commitId) : friendCommitments.find(work => work.id === commitId)
+        }).filter(com => com)
         setCommitments(actualCommitments as Workout[])
 
         // console.log("actualCommitments", actualCommitments)
@@ -50,8 +58,24 @@ const WeeklyCommitmentsDisplay = ({
         const maxVal = Math.max(...actuals, ...goals);
     
         setActualHeights(scaleToMaxHeight(160, maxVal, actuals));
-        setGoalHeights(scaleToMaxHeight(160, maxVal, goals))
-    }, [weekdays, weekPlanData])
+        setGoalHeights(scaleToMaxHeight(160, maxVal, goals));
+
+        const attemptedDistance = (actualCommitments as Workout[]).filter(commit => commit.status === "complete" && commit.strava?.distance).reduce((acc, curr) => acc + metersToMiles(curr.strava?.distance as number), 0) 
+        const goalAttemptedDistanceUpToThisPoint = (actualCommitments as Workout[]).filter(commit => commit.status !== "NA").reduce((acc, curr) => acc + curr.distance, 0)
+        if (goalAttemptedDistanceUpToThisPoint > 0){
+            setCompletionRate(attemptedDistance / goalAttemptedDistanceUpToThisPoint)
+        }
+
+        // pace success is by subtracting totaling goal total time - actual total time = answer, then answer / miles = how much you were on average off of pace goal per mile in seconds
+        const attemptedTime = (actualCommitments as Workout[]).filter(commit => commit.status === "complete").reduce((acc, curr) => acc + (curr.strava?.moving_time ?? 0), 0) 
+        const goalAttemptedTimeUpToThisPoint = (actualCommitments as Workout[]).filter(commit => commit.status !== "NA").reduce((acc, curr) => acc + generateTotalTime(curr.pace, curr.distance), 0)
+        
+        // console.log(goalAttemptedTimeUpToThisPoint, "goalAttemptedTimeUpToThisPoint")
+
+        if (goalAttemptedTimeUpToThisPoint > 0){
+            setPaceDiff((attemptedTime / attemptedDistance) - (goalAttemptedTimeUpToThisPoint / goalAttemptedDistanceUpToThisPoint))
+        }
+    }, [weekdays, weekPlanData, friendCommitments])
 
     const matchDayToDistance = (day: MyDate, commits: Workout[]) => {
         return commits.find(commit => dayToSimpleString(commit.startDate.toDate()) === day.simpleString)
@@ -100,20 +124,14 @@ const WeeklyCommitmentsDisplay = ({
                 <View className="w-full flex-row items-center justify-evenly py-6">
                     <View className="w-fit justify-center items-center">
                         <Text className=" text-md font-medium mb-2">Completion</Text>
-                        <View className="rounded-lg px-3 py-1.5 bg-[#75ffa1]">
-                            <Text className=" text-lg font-medium ">110%</Text>
+                        <View className={`rounded-lg px-3 py-1.5 ${completionRate >= .95 ? "bg-[#75ffa1]" : (completionRate >= .85 ? "bg-[#fff175]" : "bg-[#fd474c]")} `}>
+                            <Text className=" text-lg font-medium ">{Math.round(completionRate * 100)}%</Text>
                         </View>
                     </View>
                     <View className="w-fit justify-center items-center">
                         <Text className=" text-md font-medium mb-2">Pace</Text>
-                        <View className="rounded-lg px-3 py-1.5 bg-[#fff175]">
-                            <Text className=" text-lg font-medium">+0 sec</Text>
-                        </View>
-                    </View>
-                    <View className="w-fit justify-center items-center">
-                        <Text className=" text-md font-medium mb-2">HR</Text>
-                        <View className="rounded-lg px-3 py-1.5 bg-[#fd474c]">
-                            <Text className=" text-lg font-medium">170 bpm</Text>
+                        <View className={`rounded-lg px-3 py-1.5 ${paceDiff <= 5 ? "bg-[#75ffa1]" : (paceDiff <= 30 ? "bg-[#fff175]" : "bg-[#fd474c]")}`}>
+                            <Text className=" text-lg font-medium">{paceDiff >= 0 && "+"}{Math.round(paceDiff)} sec</Text>
                         </View>
                     </View>
                 </View>

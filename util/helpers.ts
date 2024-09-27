@@ -20,6 +20,12 @@ export const parsePace = (str: string) => {
     return { minutes, seconds }
 }
 
+export const generateTotalTime = (paceString:string, distance: number) => {
+    const { minutes, seconds } = parsePace(paceString);
+    const secondsPerMile = seconds + (minutes * 60)
+    return distance * secondsPerMile
+}
+
 export const actualPaceFaster = (actual: { minutes: number, seconds: number }, target: { minutes: number, seconds: number }) => {
     if (actual.minutes < target.minutes) return true;
     if (actual.minutes === target.minutes && actual.seconds < target.seconds) return true;

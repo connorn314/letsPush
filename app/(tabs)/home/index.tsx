@@ -9,24 +9,29 @@ import Feather from '@expo/vector-icons/Feather';
 import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Svg, { G, Rect, Path } from "react-native-svg"
-import { stravaAuthLoadingState, friendCommitmentsState, userState } from '@/storage/atomStorage';
+import { stravaAuthLoadingState, friendCommitmentsState, userState, friendWeekPlansState, myFriends, friendCommitmentsLoadingState, friendWeekPlansLoadingState } from '@/storage/atomStorage';
 import useAuth from '@/storage/useAuth';
 import { FIREBASE_AUTH } from '@/firebaseConfig';
 import CommitmentCard from '@/components/commitmentCard';
 import WeeklyCalendarDisplay from '@/components/weeklyDisplay';
-import FadeInViewWrapper from '@/components/fadeInViewWrapper';
 import SpinLoader from '@/components/spinLoader';
 import NotificationsModal from '@/components/notificationsModal';
 import { useRouter } from 'expo-router';
 import WeeklyCommitmentsDisplay from '@/components/weeklyCommitmentsCard';
+import { User } from '@/types/user';
 
 const HomeScreen = () => {
 
     const router = useRouter();
     const [user,] = useAtom(userState);
-    const [friendCommitments,] = useAtom(friendCommitmentsState);
+    const [friends,] = useAtom(myFriends);
+    // const [friendCommitments,] = useAtom(friendCommitmentsState);
+    const [friendWeekPlans, setFriendWeekPlans] = useAtom(friendWeekPlansState);
     const [stravaAuthLoading,] = useAtom(stravaAuthLoadingState);
-
+    const [friendCommitmentsLoading] = useAtom(friendCommitmentsLoadingState);
+    const [friendWeekPlansLoading] = useAtom(friendWeekPlansLoadingState)
+    
+    const [friendsWithoutPlans, setFriendsWithoutPlans] = useState<User[]>([]);
     // const appImage = require('../../assets/images/btn_strava_connectwith_orange.png');
 
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -35,6 +40,8 @@ const HomeScreen = () => {
     const { performOAuth, stravaRemoveAuthentication } = useAuth();
     const [test, setTest] = useState(-1);
     const [second, setSecond] = useState(-1);
+
+    const [loading, setLoading] = useState(false);
 
     const handlePresentModalPress = useCallback(() => {
         setTest(0)
@@ -61,15 +68,11 @@ const HomeScreen = () => {
         }
     };
 
-    // const testFunction = async () => {
-    //     try {
-    //         // const res = await axios.get("https://us-central1-push-fe07a.cloudfunctions.net/helloWorld")
-    //         const { data } = await helloWorld()
-    //         console.log(data, "data")
-    //     } catch (err) {
-    //         console.log(JSON.stringify(err))
-    //     }
-    // }
+    useEffect(() => {
+        if (friendWeekPlans && friends) {
+            setFriendsWithoutPlans(friends.filter(friend => friendWeekPlans.every(plan => plan.userId !== friend.id)));
+        }
+    }, [friendWeekPlans, friends])
 
     return (
         <LinearGradient
@@ -94,14 +97,55 @@ const HomeScreen = () => {
                     <View className="w-full ">
                         <ScrollView className="h-full">
                             <WeeklyCalendarDisplay />
-                            {friendCommitments.sort((a, b) => a.startDate.toDate().getTime() - b.startDate.toDate().getTime()).map(item => (
+                            <View>
+                                <Text className="font-medium text-xl p-4">Friend Commitments</Text>
+                                {friendWeekPlans.length ? friendWeekPlans.map(week => (
+                                    <WeeklyCommitmentsDisplay weekPlanData={week} key={week.id} />
+                                )) : (friendCommitmentsLoading || friendWeekPlansLoading) ? (
+                                    <View className='p-4 h-20 flex-row items-center justify-start'>
+                                        <SpinLoader />
+                                    </View>
+                                ): (
+                                    <View className='p-4 h-20 flex-row items-center justify-start'>
+                                        <Text>You have no friends with commitments this week.</Text>
+                                    </View>
+                                )}
+                            </View>
+                            {!!friendsWithoutPlans.length && (
+                                <View>
+                                    <Text className="font-medium text-xl p-4">Friends Needing Reminders</Text>
+                                    {friendsWithoutPlans.map(friend => (
+                                        <View key={friend.id} className={"flex-row justify-between items-center p-4"}>
+                                            <View className='flex-row justify-center items-center'>
+                                                <View className={`rounded-full justify-center items-center h-12 w-12 bg-orange-500`}>
+                                                    <Text className={`text-xl font-medium text-center text-white `}>{`${friend?.name[0]?.toLocaleUpperCase() ?? "N"}`}</Text>
+                                                </View>
+                                                <View className='ml-2'>
+                                                    <Text>{friend.name} has no plan...</Text>
+                                                </View>
+                                            </View>
+                                            <View>
+                                                <TouchableOpacity className='bg-[#a538ff] h-10 w-20 justify-center items-center rounded-lg' onPress={() => console.log("send noti")}>
+                                                    {loading ? (
+                                                        <SpinLoader size={18} />
+                                                    ) : (
+                                                        <Text className='text-white'>Remind</Text>
+                                                    )}
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    ))}
+                                </View>
+                            )}
+                            <View className='w-full h-20' />
+                            {/* {friendCommitments.sort((a, b) => a.startDate.toDate().getTime() - b.startDate.toDate().getTime()).map(item => (
                                 <CommitmentCard key={`${item.id}`} commitment={item} onPress={() => router.push({
                                     pathname: `/commitment/[commitmentId]`,
                                     params: {
                                         commitmentId: item.id
                                     }
                                 })} />
-                            ))}
+                            ))} */}
                         </ScrollView>
 
                     </View>

@@ -3,14 +3,8 @@
 // import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { useEffect, useRef, useState } from "react";
-import DismissKeyboard from "@/components/dismissKeyboard";
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { collection, addDoc, serverTimestamp, setDoc, updateDoc, doc, DocumentReference } from 'firebase/firestore';
-import { FIRESTORE_DB } from "../firebaseConfig";
 import { useAtom } from "jotai";
 import { lockPageOnCarousel, userState } from "@/storage/atomStorage";
-import SpinLoader from "./spinLoader";
-import { daysOfWeek } from '@/util/helpers';
 import WeekCarousel from './weekCarousel';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';

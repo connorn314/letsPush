@@ -4,13 +4,11 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 
-const WorkoutDetailsScreen = ({ navigation, route }: any) => {
+const WorkoutDetailsScreen = () => {
 
     const { commitmentId } = useLocalSearchParams();
     const router = useRouter();
     
-
-
     return (
         <View className="w-screen h-full bg-white">
             <SafeAreaView className="w-full h-full ">
@@ -23,9 +21,6 @@ const WorkoutDetailsScreen = ({ navigation, route }: any) => {
                     </View>
                 </View>
             </SafeAreaView>
-            {/* <TouchableOpacity onPress={() => navigation.back()} className={`bg-blue-600 rounded`}>
-                    <Text className="text-white py-4 px-8">Back to all</Text>
-                </TouchableOpacity> */}
         </View>
     )
 }

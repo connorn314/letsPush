@@ -71,10 +71,14 @@ const WorkoutsPage = () => {
 
                         <ScrollView className="h-full w-full" >
                             {weekPlans.map(plan => (
-                                <WeeklyCommitmentsDisplay key={plan.id} weekPlanData={plan} />
+                                <WeeklyCommitmentsDisplay key={plan.id} weekPlanData={plan} personal/>
                             ))}
 
-                            <Text className="font-medium text-xl p-4">Individual Commitments</Text>
+                            {!!workouts?.length && (
+                                <View>
+                                    <Text className="font-medium text-xl p-4">Individual Commitments</Text>
+                                </View>
+                            )}
                             {workouts.sort((a, b) => b.startDate.toDate().getTime() - a.startDate.toDate().getTime()).map(item => (
                                 <View className="px-4" key={`${item.id}`}>
                                     <PersonalCommitmentCard  item={item} onPress={() => {

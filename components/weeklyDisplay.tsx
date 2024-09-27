@@ -15,10 +15,10 @@ const WeeklyCalendarDisplay = () => {
     const [myCommitments,] = useAtom(myWorkoutsState);
 
     return (
-        <View className=" justify-center items-center p-4 w-full">
-            <View className=" w-full rounded-xl bg-[#ffffff] shadow-sm justify-center items-center p-4">
+        <View className=" justify-center items-center  w-full">
+            <View className=" w-full rounded-xl  justify-center items-center p-4">
                 <View className="w-full flex-row items-start justify-start pb-8">
-                    <Text className=" text-lg font-medium">Weekly Commitments</Text>
+                    <Text className=" text-xl font-medium">My Weekly Commitments</Text>
                 </View>
                 <View className="flex-row  justify-between items-center px-2 pb-4 rounded-lg ">
                     {weekdays.map(item => (
@@ -38,7 +38,7 @@ const WeeklyCalendarDisplay = () => {
                     commit.startDate.toDate().getDate() === currSelection?.day
                     && commit.startDate.toDate().getMonth() + 1 === currSelection?.month
                     && commit.startDate.toDate().getFullYear() === currSelection?.year)).map(commit => (
-                        <PersonalCommitmentCard key={`a_${commit.id}`} item={commit} onPress={() => {
+                        <PersonalCommitmentCard hideShadow key={`a_${commit.id}`} item={commit} onPress={() => {
                             router.push({
                                 pathname: `/commitment/[commitmentId]`,
                                 params: {

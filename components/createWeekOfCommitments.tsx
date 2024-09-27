@@ -54,16 +54,21 @@ const CreateWeekOfCommitments = ({ days, onCancel }: { days: MyDate[], onCancel:
             const promises: any[] = [];
 
             formData.forEach(item => {
+                const formatUTC = new Date(item.year, item.month - 1, item.day)
+                // set for end of day
+                formatUTC.setUTCHours(23, 59, 59)
+                
                 if (item.content) {
                     promises.push(addDoc(collection(FIRESTORE_DB, 'commitments'), {
                         ...item.content,
-                        startDate: new Date(item.year, item.month - 1, item.day), // update
+                        startDate: formatUTC, // update
                         status: "NA",
                         userId: user.id, // Attach the userId from the authenticated user
                         created_at: serverTimestamp() // Optional: Add a timestamp when the commitment was created
                     }))
                 }
             })
+
             const results = await Promise.allSettled(promises)
 
             const sortedItems = formData.sort((a, b) => new Date(a.year, a.month, a.day).getTime() > new Date(b.year, b.month, b.day).getTime() ? 1 : -1)

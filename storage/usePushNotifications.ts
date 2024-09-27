@@ -2,9 +2,10 @@ import { useEffect, useRef } from "react";
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
-
+import { collection, limit, onSnapshot, query, where } from "firebase/firestore";
+import { FIRESTORE_DB } from "../firebaseConfig";
 import { Platform } from "react-native";
-import { expoPushTokenState, notificationState, PushNotificationState } from "./atomStorage";
+import { expoPushTokenState, myPushNotificationsState, notificationState, PushNotificationState, userState } from "./atomStorage";
 import { useAtom } from "jotai";
 
 
@@ -17,9 +18,11 @@ export const usePushNotifications = (): PushNotificationState => {
       shouldSetBadge: false,
     }),
   });
-
+  
+  const [user,] = useAtom(userState);
   const [expoPushToken, setExpoPushToken] = useAtom(expoPushTokenState);
   const [notification, setNotification] = useAtom(notificationState);
+  const [, setMyPushNotifications] = useAtom(myPushNotificationsState);
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
 
@@ -84,7 +87,6 @@ export const usePushNotifications = (): PushNotificationState => {
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       setNotification(notification);
       if (!notification.request.content) return;
-      
       notification.request.content
     });
 
@@ -99,6 +101,28 @@ export const usePushNotifications = (): PushNotificationState => {
         Notifications.removeNotificationSubscription(responseListener.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+        collection(FIRESTORE_DB, 'push_notifications'),
+        where('userId', '==', user.id),
+        limit(50)
+    );
+
+    const subscriber = onSnapshot(q, {
+        next: (snapshot) => {
+            const myPushes: any[] = [];
+            snapshot.docs.forEach(doc => {
+                myPushes.push({ id: doc.id, ...doc.data() })
+            })
+            setMyPushNotifications(myPushes)
+        }
+    })
+
+    return () => subscriber();
+}, [user])
 
   return {
     expoPushToken,

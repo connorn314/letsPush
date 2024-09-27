@@ -6,7 +6,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NativeWindStyleSheet } from "nativewind";
 import { usePushNotifications } from "@/storage/usePushNotifications";
-import { expoPushTokenState, firebaseAuthLoadingState, userState } from "@/storage/atomStorage";
+import { expoPushTokenState, firebaseAuthLoadingState, notificationState, userState } from "@/storage/atomStorage";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
@@ -50,12 +50,13 @@ export default RootLayout;
 
 const RootLayoutNav = () => {
     usePushNotifications();
+    // useLocationServices():
 
     const [user, setUser] = useAtom(userState);
     const [expoToken,] = useAtom(expoPushTokenState);
     const [loading, setLoading] = useAtom(firebaseAuthLoadingState);
     const router = useRouter();
-    // const [notification, ] = useAtom(notificationState);
+    const [notification, ] = useAtom(notificationState);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, userObj => {
@@ -86,20 +87,6 @@ const RootLayoutNav = () => {
         })
     }
 
-    const createUser = async (userObj: any) => {
-        const userData = {
-            name: "",
-            created_at: Date.now(),
-            friends: [],
-            pushToken: expoToken || "",
-            workouts: [],
-            weekPlans: []
-        }
-        // console.log("userData", userData)
-        await setDoc(doc(FIRESTORE_DB, "users", userObj.uid), userData);
-        return await getDoc(doc(FIRESTORE_DB, "users", userObj.uid))
-    }
-
     const getMe = async (userObj: any) => {
         if (!userObj || !userObj.uid) return;
 
@@ -118,10 +105,7 @@ const RootLayoutNav = () => {
             if (userDoc.exists()) {
                 // const profile = userDoc.data();
                 setUser({ ...userObj, id: userObj.uid, ...userDoc.data(), strava: stravaDoc.exists() ? stravaDoc.data() : undefined });
-            } else {
-                const newUser = (await createUser(userObj)).data
-                setUser({ ...userObj, id: userObj.uid, ...newUser, strava: stravaDoc.exists() ? stravaDoc.data() : undefined })
-            }
+            } 
             setLoading(false);
         } catch (err: any) {
             console.log(err, "err")
@@ -131,7 +115,8 @@ const RootLayoutNav = () => {
 
     useEffect(() => {
         if (!loading && !user){
-            router.push("/login")
+            // router.push("/login")
+            router.push("/onboarding")
         }
     }, [user])
 
@@ -149,6 +134,7 @@ const RootLayoutNav = () => {
             <Stack.Screen name="commitment/[commitmentId]" options={{headerShown: false}} />
             <Stack.Screen name="profile/[userId]" options={{headerShown: false}} />
             <Stack.Screen name="login" options={{headerShown: false}} />
+            <Stack.Screen name="onboarding" options={{headerShown: false}} />
         </Stack>
     )
 }

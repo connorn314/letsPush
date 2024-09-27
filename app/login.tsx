@@ -15,7 +15,8 @@ import DismissKeyboard from "@/components/dismissKeyboard";
 const Login = ({ navigation }: any) => {
 
 
-    const appImage = require('@/assets/images/icon.png');
+    const appImage = require('@/assets/images/besvarra_long_horiz.png');
+    const stravaImage = require('@/assets/images/api_logo_pwrdBy_strava_stack_light.png');
     // const [user, setUser] = useAtom(userState);
     // const [withPassword, setWithPassword] = useState(false);
 
@@ -53,8 +54,8 @@ const Login = ({ navigation }: any) => {
             setLoading(false)
         }
     }
-    
-    
+
+
     return (
         <SafeAreaView className={`bg-white transition-all duration-200 relative`}>
             <DismissKeyboard>
@@ -62,25 +63,25 @@ const Login = ({ navigation }: any) => {
                     <View className="h-auto w-full flex justify-center items-center overflow-scroll">
                         <KeyboardAvoidingView behavior="padding" className=" w-full px-4 flex justify-center items-center">
                             <View className=" w-full flex justify-center items-center">
-                                <View className="mb-5">
+                                <View className="mb-12">
                                     {/* <Text className="text-[#a538ff] text-3xl font-semibold mb-6">Strollie</Text> */}
-                                    <Image source={appImage} className="w-20 h-20" 
+                                    <Image source={appImage} className="w-screen h-20"
                                         style={{
                                             borderBottomLeftRadius: 5,
                                             borderBottomRightRadius: 5,
                                             borderTopLeftRadius: 5,
                                             borderTopRightRadius: 5,
-                                            }} resizeMode={"contain"}/>
+                                        }} resizeMode={"contain"} />
                                 </View>
                                 {/* <TouchableOpacity>
 
                                 </TouchableOpacity> */}
                                 <View className="w-full space-y-4 mb-4">
                                     <View className="w-full relative ">
-                                        <TextInput 
+                                        <TextInput
                                             placeholder="Email"
                                             className=" border-black border-2 rounded-lg"
-                                            style={{paddingVertical: 16, paddingHorizontal: 36}}
+                                            style={{ paddingVertical: 16, paddingHorizontal: 36 }}
                                             placeholderTextColor={"gray"}
                                             value={email}
                                             onChangeText={(text) => setEmail(text)} />
@@ -88,16 +89,16 @@ const Login = ({ navigation }: any) => {
                                             <MaterialCommunityIcons name="email-outline" className="absolute left-0" size={24} color="black" />
                                         </View>
                                     </View>
-                                    
+
                                     <View className="w-full relative ">
-                                        <TextInput 
+                                        <TextInput
                                             placeholder="Password"
                                             className=" border-black border-2 rounded-lg"
-                                            style={{paddingVertical: 16, paddingHorizontal: 36}}
+                                            style={{ paddingVertical: 16, paddingHorizontal: 36 }}
                                             value={password}
                                             placeholderTextColor={"gray"}
                                             onChangeText={(text) => setPassword(text)}
-                                            secureTextEntry/>
+                                            secureTextEntry />
                                         <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
                                             <Feather name="lock" size={24} color="black" />
                                         </View>
@@ -105,23 +106,33 @@ const Login = ({ navigation }: any) => {
 
                                 </View>
                                 <View className="w-full">
-                                    <TouchableOpacity className="bg-[#a538ff] mb-6 shadow-sm border-rounded-full w-full rounded-full py-3 mt-1 justify-center items-center"
+                                    <TouchableOpacity className="bg-[#a538ff] mb-6 w-full rounded-xl h-14 mt-1 justify-center items-center"
                                         onPress={handleSignIn}  >
                                         {loading ? (
                                             <SpinLoader />
                                         ) : (
-                                            <Text className="text-xl text-white font-semibold">Log in</Text>
+                                            <Text className="text-lg text-white font-medium">Log in</Text>
                                         )}
                                     </TouchableOpacity>
                                     <View className="w-full justify-center items-center mb-6">
                                         <Text className="text-md underline text-black">forgot password?</Text>
+                                    </View>
+                                    <View className="w-full items-center justify-center">
+                                        <Image source={stravaImage} className="w-28 h-28"
+                                            style={{
+                                                borderBottomLeftRadius: 5,
+                                                borderBottomRightRadius: 5,
+                                                borderTopLeftRadius: 5,
+                                                borderTopRightRadius: 5,
+                                            }} resizeMode={"contain"} />
+
                                     </View>
                                     {/* <TouchableOpacity className=" mb-6 shadow-md border-rounded-full border-2 border-[#a538ff] w-full rounded-full py-4 mt-1 justify-center items-center"
                                         onPress={handleSignUp}  >
                                         <Text className="text-xl text-[#a538ff] font-semibold">Register</Text>
                                     </TouchableOpacity> */}
                                 </View>
-                            </View>        
+                            </View>
                         </KeyboardAvoidingView>
 
                         {/* Divider */}
@@ -195,11 +206,11 @@ const Login = ({ navigation }: any) => {
                     appearsOnIndex={0}
                     disappearsOnIndex={-1}
                     style={[{ backgroundColor: 'rgba(0, 0, 0, 1)' }, StyleSheet.absoluteFillObject]} />)}
-                    onChange={(index) => {
-                        if (index === -1) { Keyboard.dismiss() }
-                    }}
-                >
-                <SignIn onClose={() => handleClosePress()}/>
+                onChange={(index) => {
+                    if (index === -1) { Keyboard.dismiss() }
+                }}
+            >
+                <SignIn onClose={() => handleClosePress()} />
             </BottomSheet>
         </SafeAreaView>
     )
