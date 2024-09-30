@@ -144,15 +144,16 @@ const SignIn = ({ onClose }: { onClose: () => void }) => {
 
                     </View>
                 </KeyboardAvoidingView>
-                <View className=" w-full justify-center overflow-visible pb-12 items-center relative">
+                <View className=" w-full justify-center overflow-visible pt-4 pb-12 items-center relative">
 
-                    <Image source={appImage} className=" h-14"
+                    {/* <Image source={appImage} className=" h-14"
                         style={{
                             borderBottomLeftRadius: 5,
                             borderBottomRightRadius: 5,
                             borderTopLeftRadius: 5,
                             borderTopRightRadius: 5,
-                        }} resizeMode={"contain"} />
+                        }} resizeMode={"contain"} /> */}
+                    <Text className=" text-[50px] font-semibold mb-6">Ruñet</Text>
                     <View className="justify-end  w-fit items-center pl-12 absolute bottom-0">
                         <Image source={stravaImage} className="w-20 h-20 "
                             style={{

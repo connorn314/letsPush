@@ -58,6 +58,11 @@ const HomeScreen = () => {
         notificationModalRef.current?.present()
     }, [])
 
+    const handleCloseNotifications = useCallback(() => {
+        setSecond(-1)
+        notificationModalRef.current?.close()
+    }, [])
+
     const handleSignOut = async () => {
         try {
             handleClosePress()
@@ -77,33 +82,33 @@ const HomeScreen = () => {
     return (
         <LinearGradient
             // Background Linear Gradient
-            colors={['#ffffff', '#ffffff', '#ffffff']}
+            colors={['#f0f0f0', '#ffffff', '#f0f0f0']}
             end={{ x: 0.1, y: 0.1 }}
             start={{ x: 0.9, y: 1 }}
             style={{ height: "100%", width: "100%", alignItems: "center", justifyContent: "center", paddingHorizontal: 20 }}
         >
-            <SafeAreaView>
+            <SafeAreaView className='w-screen'>
                 <View className="items-center justify-start w-screen h-full " >
                     <View className='w-full flex-row justify-center items-center'>
-                        <TouchableOpacity onPress={() => handlePresentModalPress()} className='p-4  bg-white rounded-full absolute top-2 left-4 '>
+                        <TouchableOpacity onPress={() => handlePresentModalPress()} className='p-4  rounded-full absolute top-2 left-4 '>
                             <Feather name="settings" size={24} color="black" />
                         </TouchableOpacity>
                         <Text className="text-lg text-black font-medium pt-6 pb-4">Home</Text>
 
-                        <TouchableOpacity onPress={handlePresentNotifications} className='p-4  bg-white rounded-full absolute top-2 right-4 '>
+                        <TouchableOpacity onPress={handlePresentNotifications} className='p-4  rounded-full absolute top-2 right-4 '>
                             <FontAwesome5 name="bell" size={24} color="black" />
                         </TouchableOpacity>
                     </View>
                     <View className="w-full ">
                         <ScrollView className="h-full">
                             <WeeklyCalendarDisplay />
-                            <View>
-                                <Text className="font-medium text-xl p-4">Friend Commitments</Text>
+                            <View className='w-full'>
+                                <Text className="font-medium text-xl p-4">My Friends</Text>
                                 {friendWeekPlans.length ? friendWeekPlans.map(week => (
                                     <WeeklyCommitmentsDisplay weekPlanData={week} key={week.id} />
                                 )) : (friendCommitmentsLoading || friendWeekPlansLoading) ? (
-                                    <View className='p-4 h-20 flex-row items-center justify-start'>
-                                        <SpinLoader />
+                                    <View className='p-4 h-20 flex-row items-center justify-center w-full'>
+                                        <SpinLoader color='black'/>
                                     </View>
                                 ): (
                                     <View className='p-4 h-20 flex-row items-center justify-start'>
@@ -117,7 +122,7 @@ const HomeScreen = () => {
                                     {friendsWithoutPlans.map(friend => (
                                         <View key={friend.id} className={"flex-row justify-between items-center p-4"}>
                                             <View className='flex-row justify-center items-center'>
-                                                <View className={`rounded-full justify-center items-center h-12 w-12 bg-orange-500`}>
+                                                <View className={`rounded-full justify-center items-center h-12 w-12 bg-[#a538ff]`}>
                                                     <Text className={`text-xl font-medium text-center text-white `}>{`${friend?.name[0]?.toLocaleUpperCase() ?? "N"}`}</Text>
                                                 </View>
                                                 <View className='ml-2'>
@@ -219,7 +224,7 @@ const HomeScreen = () => {
                 //     if (index === -1) { Keyboard.dismiss() }
                 // }}
                 >
-                    <NotificationsModal />
+                    <NotificationsModal onClose={handleCloseNotifications}/>
                 </BottomSheetModal>
             </SafeAreaView>
         </LinearGradient>

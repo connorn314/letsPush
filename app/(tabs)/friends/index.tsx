@@ -20,7 +20,7 @@ const FriendsPage = () => {
     return (
         <LinearGradient
             // Background Linear Gradient
-            colors={['#ffffff', '#ffffff', '#ffffff']}
+            colors={['#f0f0f0', '#ffffff', '#f0f0f0']}
             end={{ x: 0.1, y: 0.1 }}
             start={{ x: 0.9, y: 1 }}
             style={{ height: "100%", width: "100%", alignItems: "center", justifyContent: "center", paddingHorizontal: 20 }}
@@ -32,7 +32,7 @@ const FriendsPage = () => {
                             <View className="w-full relative  rounded-lg   ">
                                 <TextInput
                                     placeholder="Find Friends..."
-                                    className=" bg-white rounded-lg"
+                                    className=" bg-white rounded-lg shadow-sm"
                                     style={{ paddingVertical: 16, paddingHorizontal: 40 }}
                                     placeholderTextColor={"gray"}
                                     value={searchInput}
@@ -48,7 +48,7 @@ const FriendsPage = () => {
                                 renderItem={({ item }) => {
                                     // const date = item.startDate.toDate();
                                     return (
-                                        <TouchableOpacity className="bg-[#ffffff] border-rounded-full w-full rounded-lg p-4 justify-center items-start"
+                                        <TouchableOpacity className="bg-[#ffffff] shadow-sm my-1 border-rounded-full w-full rounded-lg p-4 justify-center items-start"
                                             onPress={() => {
                                                 // playSound(mediaData[idx].url)
                                                 router.push({
@@ -60,7 +60,7 @@ const FriendsPage = () => {
                                                 })
                                             }}  >
                                             <View className="flex-row items-center w-full">
-                                                <Animated.View className="justify-center items-center h-12 w-12 bg-orange-500" sharedTransitionTag="tag">
+                                                <Animated.View className="justify-center items-center h-12 w-12 bg-[#a538ff]" sharedTransitionTag="tag">
                                                     {/* <Text className="text-white">{item.name.length ? item.name[0].toLocaleUpperCase() : "U"}</Text> */}
                                                 </Animated.View>
                                                 <View className="grow ml-2">

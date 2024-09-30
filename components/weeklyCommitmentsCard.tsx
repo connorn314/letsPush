@@ -8,7 +8,8 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { MyDate, WeekOfCommitments, Workout } from "@/types/workouts";
-import { friendCommitmentsState, myWorkoutsState } from "@/storage/atomStorage";
+import { friendCommitmentsState, myFriends, myWorkoutsState, userState } from "@/storage/atomStorage";
+import { User } from "@/types/user";
 
 
 const WeeklyCommitmentsDisplay = ({
@@ -20,10 +21,14 @@ const WeeklyCommitmentsDisplay = ({
 }) => {
 
     const [year, month, day] = weekPlanData.start.split("/")
+    // console.log(weekPlanData)
 
     const router = useRouter();
     const [workouts, ] = useAtom(myWorkoutsState);
     const [friendCommitments, ] = useAtom(friendCommitmentsState);
+    const [friends, ] = useAtom(myFriends);
+    const [user, ] = useAtom(userState);
+    const [author, setAuthor] = useState<User | null>(null);
     
     const [weekdays,] = useState(daysOfWeek(new Date(Number(year), Number(month) - 1, Number(day))));
     const [commitments, setCommitments] = useState<Workout[] | null>(null);
@@ -46,22 +51,30 @@ const WeeklyCommitmentsDisplay = ({
     }
 
     useEffect(() => {
-        if (!weekdays || !weekPlanData || !friendCommitments || !workouts) return;
+        if (!weekdays || !weekPlanData ||(!personal && !friendCommitments) || (personal && !workouts)) return;
         const actualCommitments = weekPlanData.commitments.map(commitId => {
             return personal ? workouts.find(work => work.id === commitId) : friendCommitments.find(work => work.id === commitId)
         }).filter(com => com)
+
+        if (!actualCommitments.length) return;
         setCommitments(actualCommitments as Workout[])
 
-        // console.log("actualCommitments", actualCommitments)
-        const actuals = weekdays.map(day => matchDayToDistance(day, actualCommitments as Workout[])?.strava?.distance ?? 0)
-        const goals = weekdays.map(day => matchDayToDistance(day, actualCommitments as Workout[])?.distance ?? 0)
+        const actuals = weekdays.map(day => metersToMiles(matchDayToDistance(day, actualCommitments as Workout[])?.strava?.distance ?? 0))
+        const goals = weekdays.map(day => Number(matchDayToDistance(day, actualCommitments as Workout[])?.distance  ?? 0))
         const maxVal = Math.max(...actuals, ...goals);
-    
+
+        // console.log("actuals", actuals)
+        // console.log("goals", goals)
+
         setActualHeights(scaleToMaxHeight(160, maxVal, actuals));
         setGoalHeights(scaleToMaxHeight(160, maxVal, goals));
 
         const attemptedDistance = (actualCommitments as Workout[]).filter(commit => commit.status === "complete" && commit.strava?.distance).reduce((acc, curr) => acc + metersToMiles(curr.strava?.distance as number), 0) 
-        const goalAttemptedDistanceUpToThisPoint = (actualCommitments as Workout[]).filter(commit => commit.status !== "NA").reduce((acc, curr) => acc + curr.distance, 0)
+        const goalAttemptedDistanceUpToThisPoint = (actualCommitments as Workout[]).filter(commit => commit.status !== "NA").reduce((acc, curr) => acc + Number(curr.distance), 0)
+
+        // console.log("attemptedDistance", attemptedDistance)
+        // console.log("goalAttemptedDistanceUpToThisPoint", goalAttemptedDistanceUpToThisPoint)
+        
         if (goalAttemptedDistanceUpToThisPoint > 0){
             setCompletionRate(attemptedDistance / goalAttemptedDistanceUpToThisPoint)
         }
@@ -87,23 +100,32 @@ const WeeklyCommitmentsDisplay = ({
         return `${startSegments[1]}/${startSegments[2]}`
     }
 
+    useEffect(() => {
+        if (!personal){
+            setAuthor(friends.find(friend => friend.id === weekPlanData.userId) ?? null)
+        }
+    }, [friends])
+
+    const start = weekPlanData.start.split("/")
+
     return (
         <View className=" justify-center items-center p-4 w-full">
             <Pressable onPress={() => {
                 router.push({
-                    pathname: "/profile/[userId]",
+                    pathname: "/weekOfCommitments/[weekPlanId]",
                     params: {
-                        userId: weekPlanData.userId,
+                        weekPlanId: weekPlanData.id,
+                        name: `Week of ${start[1]}/${start[2]}`
                     }
                 })
-            }} className=" w-full rounded-xl bg-[#ffffff] justify-center items-center p-4">
+            }} className=" w-full rounded-2xl bg-white shadow-sm justify-center items-center p-4">
                 <View className='flex-row w-full justify-start items-center'>
                     {/* <View className={`rounded-full justify-center items-center h-16 w-16 ${commitment.status === "complete" ? "bg-green-300" : (commitment.status === "failure" ? "bg-red-400" : "bg-slate-200")}`}> */}
-                    <View className={`rounded-full justify-center items-center h-12 w-12 bg-orange-500`}>
-                        <Text className={`text-xl font-semibold text-center text-white `}>{`C`}</Text>
+                    <View className={`rounded-full justify-center items-center h-12 w-12 bg-[#a538ff]`}>
+                        <Text className={`text-xl font-semibold text-center text-white `}>{(personal && user.name) ? user.name[0]?.toLocaleUpperCase()  : author?.name[0]?.toLocaleUpperCase() ?? "N"}</Text>
                     </View>
                     <View className="ml-2">
-                        <Text className="text-lg font-medium">Connor Norton</Text>
+                        <Text className="text-lg font-medium">{personal ? "Me" : author?.name ?? "New User"}</Text>
                         <Text className='text-sm h-6 '>Commitments {getDateAbrv(weekPlanData.start)} - {getDateAbrv(weekPlanData.end)}</Text>
                     </View>
                 </View>

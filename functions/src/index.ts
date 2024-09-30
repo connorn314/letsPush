@@ -109,7 +109,7 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
   }
 
   const data = event.data.after.data();
-  const id = event.data.after.id
+  // const id = event.data.after.id
 
   if (!data['strava_activity_id']) {
     logger.info("no commitment.strava_activity_id")
@@ -240,9 +240,9 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
         to: pushToken,
         sound: 'default',
         title: `${name} really did it.`,
-        body: `They complete "${data.name}" commitment.`,
+        body: `${data.name || "Today's Run"} - complete.`,
         badge: 1,
-        data: { url: `bevvarra.com://commitment/${id}` }
+        data: { url: `/weekOfCommitments/${data.weekPlanId ?? "none"}` }
       }
       messages.push(notif);
       const docRef = pushNotificationsRef.doc(); // Create a new document reference with a unique ID
@@ -271,8 +271,6 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
         logger.error(`this is where the error is ${JSON.stringify(error)}`);
       }
     }
-
-
 
     const receiptIds = [];
     for (let ticket of tickets) {
@@ -320,6 +318,27 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
 })
 
 exports.scheduledUpdateCommitmentsStatus = onSchedule("every 1 hours", async (event) => {
+
+  const handlePushReceiptError = async ({ expoPushToken, error }: { expoPushToken?: string; error?: "DeveloperError" | "DeviceNotRegistered" | "ExpoError" | "InvalidCredentials" | "MessageRateExceeded" | "MessageTooBig" | "ProviderError" }) => {
+    if (!error) return;
+    if (error === "DeviceNotRegistered") {
+      logger.error("attempting to send push notification to device no longer registered")
+      if (!expoPushToken) return;
+      const usersWithTokenSnaps = await db.collection("users").where("pushToken", "==", expoPushToken).get();
+      if (usersWithTokenSnaps.empty) return;
+      // shouldn't be more than one but just in case;
+      // eventually this should be a concurrent operation;
+      usersWithTokenSnaps.docs.forEach(userWithToken => {
+        userWithToken.ref.update({
+          pushToken: admin.firestore.FieldValue.delete()
+        })
+      })
+      return;
+    }
+    logger.error(`We had a push error that wasn't a device registered issue: ${error}`)
+  }
+
+
   // Get the current time
   const pacificTime = new Date()
 
@@ -331,7 +350,7 @@ exports.scheduledUpdateCommitmentsStatus = onSchedule("every 1 hours", async (ev
   }
   // minus six (-7 + 1) because it will take the timestamp to one hour past midnight 
   // on the day the task was to be completed
-  pacificTime.setUTCHours(pacificTime.getUTCHours() - 6);
+  // pacificTime.setUTCHours(pacificTime.getUTCHours() - 6);
 
   // Check if it's 8 PM in Pacific Time
   // const year = pacificTime.getUTCFullYear();
@@ -340,23 +359,154 @@ exports.scheduledUpdateCommitmentsStatus = onSchedule("every 1 hours", async (ev
 
   // const formattedTodayDate = `${year}/${month + 1}/${day}`
 
-  const commitmentsRef = admin.firestore().collection('commitments');
+  const commitmentsRef = db.collection('commitments');
+  const usersRef = db.collection('users');
+  const pushNotificationsRef = db.collection("push_notifications");
 
   try {
     const snapshot = await commitmentsRef
       .where('startDate', '<=', pacificTime)
-      .where('status', '!=', 'complete')
+      .where('status', '==', 'NA')
       .get();
 
-    const batch = admin.firestore().batch();
+    if (snapshot.size === 0) {
+      logger.info("Zero failed workouts")
+      return;
+    }
+
+    const batch = db.batch();
+
+    // [ [userId, weekPlanId], ... ]
+    const userIdsWhoFailed: string[] = [];
+    const userToWeekPlanMap: Record<string, string> = {};
 
     snapshot.forEach(doc => {
       const docRef = commitmentsRef.doc(doc.id);
       batch.update(docRef, { status: 'failure', updated_at: admin.firestore.FieldValue.serverTimestamp() });
+      userIdsWhoFailed.push(doc.data().userId)
+      userToWeekPlanMap[doc.data().userId] = doc.data().weekPlanId
     });
 
     await batch.commit();
-    logger.info(`Updated ${snapshot.size} documents to status 'failure'.`);
+
+    if (userIdsWhoFailed.length === 0) {
+      logger.info("userIdsWhoFailed length is zero");
+      return;
+    }
+
+    const allFailedUsersSnapshot = await usersRef
+      .where(admin.firestore.FieldPath.documentId(), "in", userIdsWhoFailed)
+      .get();
+
+    logger.info("made it to this step");
+
+    const friendsToPushesMap: Map<string, { name: string; id: string; weekPlanId: string }[]> = new Map();
+
+    allFailedUsersSnapshot.forEach(userSnap => {
+      if (!userSnap.data().friends || !userSnap.data().friends.length) return;
+      (userSnap.data().friends as string[]).forEach(friend => {
+        const newPushDetails = { id: userSnap.id, name: userSnap.data().name ?? "Someone", weekPlanId: userToWeekPlanMap[userSnap.id] }
+        if (friendsToPushesMap.has(friend)) {
+          friendsToPushesMap.set(friend, friendsToPushesMap.get(friend)?.concat(newPushDetails) ?? [newPushDetails])
+          return;
+        }
+        friendsToPushesMap.set(friend, [newPushDetails])
+      })
+      logger.info(`here we are ${JSON.stringify(userSnap.data().friends)}`);
+    })
+
+    if (!friendsToPushesMap.size) {
+      logger.info("No friends to push failures to :)")
+      return;
+    }
+
+    const messages: ExpoPushMessage[] = [];
+    const pushBatch = db.batch();
+
+    const friendsSnaps = await usersRef
+      .where(admin.firestore.FieldPath.documentId(), "in", Array.from(friendsToPushesMap.keys()))
+      .get();
+
+    friendsSnaps.docs.forEach((friendSnap) => {
+      if (!friendSnap || !friendSnap.exists) return;
+      if (!friendSnap.data()?.pushToken || !Expo.isExpoPushToken(friendSnap.data()?.pushToken)) return;
+      friendsToPushesMap.get(friendSnap.id)?.forEach(pushDetails => {
+        const message: ExpoPushMessage = {
+          to: friendSnap.data().pushToken,
+          sound: 'default',
+          title: `Alert! ${pushDetails.name} failed.`,
+          body: `See which commitment.`,
+          badge: 1,
+          data: { url: `/weekOfCommitments/${pushDetails.weekPlanId}` }
+        }
+        messages.push(message)
+        const docRef = pushNotificationsRef.doc(); // Create a new document reference with a unique ID
+        pushBatch.set(docRef, {
+          content: message,
+          userId: friendSnap.id,
+          created_at: admin.firestore.FieldValue.serverTimestamp(),
+          viewed: false
+        });
+      })
+    })
+
+    await pushBatch.commit();
+
+    logger.info("should have created the push docs in firebase")
+
+    const chunks = expo.chunkPushNotifications(messages);
+    const tickets = [];
+
+    for (let chunk of chunks) {
+      try {
+        // logger.info(`starting first chunk of push notifications: ${JSON.stringify(chunk)}`)
+        const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+        // logger.info(JSON.stringify(ticketChunk))
+        tickets.push(...ticketChunk);
+      } catch (error) {
+        logger.error(`this is where the error is ${JSON.stringify(error)}`);
+      }
+    }
+
+    const receiptIds = [];
+    for (let ticket of tickets) {
+      // NOTE: Not all tickets have IDs; for example, tickets for notifications
+      // that could not be enqueued will have error information and no receipt ID.
+      // logger.info('creating receipt id array with tickets ^')
+      if (ticket.status === 'ok') {
+        receiptIds.push(ticket.id);
+      } else if (ticket.message) {
+        logger.warn(ticket.message)
+      }
+    }
+
+    const receiptIdChunks = expo.chunkPushNotificationReceiptIds(receiptIds);
+    for (let chunk of receiptIdChunks) {
+      try {
+        // logger.info(`beginning to fetch receipts for this chunk: ${JSON.stringify(chunk)}`);
+        const receipts = await expo.getPushNotificationReceiptsAsync(chunk);
+        logger.info(`receipts: ${JSON.stringify(receipts)}`);
+
+        // The receipts specify whether Apple or Google successfully received the
+        // notification and information about an error, if one occurred.
+        for (let receiptId in receipts) {
+          const { status } = receipts[receiptId];
+          if (status === 'ok') {
+            continue;
+          } else if (status === 'error') {
+            const { message, details, expoPushToken } = receipts[receiptId] as ExpoPushErrorReceipt;
+            logger.error(
+              `There was an error sending a notification: ${message}`
+            );
+            if (details && details.error) { handlePushReceiptError({ expoPushToken, error: details.error }) }
+          }
+        }
+      } catch (error) {
+        logger.error(error);
+      }
+    }
+
+    logger.info(`Updated ${snapshot.size} documents to status 'failure'. Sent ${messages.length} push notifications.`);
   } catch (error) {
     logger.error('Error updating commitments:', error);
   }

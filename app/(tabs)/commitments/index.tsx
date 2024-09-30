@@ -47,10 +47,15 @@ const WorkoutsPage = () => {
         notificationModalRef.current?.present()
     }, [])
 
+    const handleCloseNotifications = useCallback(() => {
+        setSecond(-1)
+        notificationModalRef.current?.close()
+    }, [])
+
     return (
         <LinearGradient
             // Background Linear Gradient
-            colors={['#ffffff', '#ffffff', '#ffffff']}
+            colors={['#f0f0f0', '#ffffff', '#f0f0f0']}
             end={{ x: 0.1, y: 0.1 }}
             start={{ x: 0.9, y: 1 }}
             style={{ height: "100%", width: "100%", alignItems: "center", justifyContent: "center", paddingHorizontal: 20 }}
@@ -58,19 +63,24 @@ const WorkoutsPage = () => {
             <SafeAreaView className={` transition-all duration-200 relative`}>
                 <View className='w-screen h-full justify-start items-center'>
                     <View className=' w-full flex-row justify-center items-center'>
-                        <TouchableOpacity onPress={() => handlePresentModalPress()} className='p-4  bg-white rounded-full absolute top-2 left-4'>
+                        <TouchableOpacity onPress={() => handlePresentModalPress()} className='p-4 rounded-full absolute top-2 left-4'>
                             <Entypo name="plus" size={24} color="black" />
                         </TouchableOpacity>
                         <Text className="text-lg text-black font-medium pt-6 pb-4">Workouts</Text>
 
-                        <TouchableOpacity onPress={handlePresentNotifications} className='p-4  bg-white rounded-full absolute top-2 right-4'>
+                        <TouchableOpacity onPress={handlePresentNotifications} className='p-4 rounded-full absolute top-2 right-4'>
                             <FontAwesome5 name="bell" size={24} color="black" />
                         </TouchableOpacity>
                     </View>
                     <View className="w-full">
 
                         <ScrollView className="h-full w-full" >
-                            {weekPlans.map(plan => (
+                            <Text className="font-medium text-xl px-4 pt-4">This Week's Progress</Text>
+                            {weekPlans.sort((a, b) => {
+                                const [yearA, monthA, dayA] = a.start.split("/")
+                                const [yearB, monthB, dayB] = b.start.split("/")
+                                return new Date(Number(yearA), Number(monthA), Number(dayA)).getTime() - new Date(Number(yearB), Number(monthB), Number(dayB)).getTime()
+                            }).map(plan => (
                                 <WeeklyCommitmentsDisplay key={plan.id} weekPlanData={plan} personal/>
                             ))}
 
@@ -130,7 +140,7 @@ const WorkoutsPage = () => {
                     disappearsOnIndex={-1}
                     style={[{ backgroundColor: 'rgba(0, 0, 0, 1)' }, StyleSheet.absoluteFillObject]} />)}
             >
-                <NotificationsModal />
+                <NotificationsModal onClose={handleCloseNotifications}/>
             </BottomSheetModal>
         </LinearGradient >
     )

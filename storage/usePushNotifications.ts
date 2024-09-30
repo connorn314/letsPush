@@ -7,6 +7,7 @@ import { FIRESTORE_DB } from "../firebaseConfig";
 import { Platform } from "react-native";
 import { expoPushTokenState, myPushNotificationsState, notificationState, PushNotificationState, userState } from "./atomStorage";
 import { useAtom } from "jotai";
+import { useRouter } from "expo-router";
 
 
 
@@ -18,6 +19,8 @@ export const usePushNotifications = (): PushNotificationState => {
       shouldSetBadge: false,
     }),
   });
+
+  const router = useRouter();
   
   const [user,] = useAtom(userState);
   const [expoPushToken, setExpoPushToken] = useAtom(expoPushTokenState);
@@ -91,7 +94,9 @@ export const usePushNotifications = (): PushNotificationState => {
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
+      if (response.notification.request.content?.data?.url) {
+        router.push(response.notification.request.content.data.url)
+      }
     });
 
     return () => {

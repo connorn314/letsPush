@@ -82,6 +82,9 @@ const CreateWeekOfCommitments = ({ days, onCancel }: { days: MyDate[], onCancel:
                 commitments: commitmentRefs.map(ref => ref?.id)
             })
 
+            const newPromises = commitmentRefs.map(ref => updateDoc(ref, { weekPlanId: weekOfCommitmentsRef.id }));
+            await Promise.allSettled(newPromises);
+
             if (weekOfCommitmentsRef.id) {
                 await updateDoc(doc(FIRESTORE_DB, "users", user.id), {
                     workouts: !!(user?.workouts && user.workouts.length) ? user.workouts.concat(commitmentRefs) : commitmentRefs,
@@ -103,10 +106,10 @@ const CreateWeekOfCommitments = ({ days, onCancel }: { days: MyDate[], onCancel:
     }
     const isComplete = () => {
         const today = new Date()
-        if (days.every(day => today < new Date(day.year, day.month - 1, day.day))){
+        if (days.every(day => today < new Date(day.year, day.month - 1, day.day + 1))){
             return formData.length === 7
         }
-        return formData.length === (6 - today.getDay())
+        return formData.length === (7 - today.getDay())
     }
 
     return (
@@ -255,7 +258,7 @@ const WorkoutSelection = ({ date, dayOfWeek, workout, restState, onSaveNewWorkou
                     </View>
                 </View>
                 <View className="justify-center items-center">
-                    {new Date(date.year, date.month - 1, date.day) >= new Date() ? (
+                    {new Date(date.year, date.month - 1, date.day + 1) >= new Date() ? (
 
                         <View className="flex-row justify-center items-center ">
                             <Pressable onPress={() => {

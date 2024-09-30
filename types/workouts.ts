@@ -24,6 +24,7 @@ export interface Workout {
     status: "complete" | "failure" | "NA";
     pace: string;
     name: string;
+    weekPlanId: string;
     strava_activity_id?: number;
     strava?: {
         distance: number;

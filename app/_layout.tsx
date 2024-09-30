@@ -135,6 +135,7 @@ const RootLayoutNav = () => {
             <Stack.Screen name="profile/[userId]" options={{headerShown: false}} />
             <Stack.Screen name="login" options={{headerShown: false}} />
             <Stack.Screen name="onboarding" options={{headerShown: false}} />
+            <Stack.Screen name="weekOfCommitments/[weekPlanId]" options={{headerShown: false}} />
         </Stack>
     )
 }

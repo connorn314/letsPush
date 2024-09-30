@@ -14,7 +14,7 @@ const useFriendsCommitments = () => {
     const [, setFriendWeekPlansLoading] = useAtom(friendWeekPlansLoadingState)
     const days = daysOfWeek();
     const sundayDate = new Date(days[0].year, days[0].month - 1, days[0].day)
-    const saturdayDate = new Date(days[6].year, days[6].month - 1, days[6].day)
+    const saturdayDate = new Date(days[6].year, days[6].month - 1, days[6].day + 1)
 
     useEffect(() => {
         if (!user && friendWeekPlans.length){
