@@ -8,5 +8,6 @@ export interface User {
     friends: string[];
     pushToken: string;
     workouts: Workout[];
-    workoutPlans: WeekOfCommitments[]
+    workoutPlans: WeekOfCommitments[];
+    reminders_sent?: string[];
 }

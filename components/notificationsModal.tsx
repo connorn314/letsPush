@@ -4,11 +4,19 @@ import { useAtom } from "jotai";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Href, useRouter } from 'expo-router';
 import Fontisto from '@expo/vector-icons/Fontisto';
+import { updateDoc, doc } from 'firebase/firestore';
+import { FIRESTORE_DB } from '@/firebaseConfig';
 
 const NotificationsModal = ({ onClose }: { onClose: () => void }) => {
 
     const router = useRouter();
     const [myPushNotifications,] = useAtom(myPushNotificationsState);
+
+    const viewNotification = async (pushId: string) => {
+        await updateDoc(doc(FIRESTORE_DB, `push_notifications`, pushId), {
+            viewed: true
+        })
+    }
 
     return (
         <View className='h-full w-screen items-center justify-center'>
@@ -32,6 +40,7 @@ const NotificationsModal = ({ onClose }: { onClose: () => void }) => {
                                     if (goTo) {
                                         // console.log(goTo.slice(14))
                                         onClose()
+                                        viewNotification(push.id);
                                         setTimeout(() => router.push(`${goTo}` as Href<string>), 100)
                                     }
                                 }} key={push.id} className={`${!push.viewed && "bg-blue-100"} w-full h-24 p-4 flex-col justify-start `}>

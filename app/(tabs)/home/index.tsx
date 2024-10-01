@@ -20,17 +20,22 @@ import { useRouter } from 'expo-router';
 import WeeklyCommitmentsDisplay from '@/components/weeklyCommitmentsCard';
 import { User } from '@/types/user';
 
+import { getFunctions, httpsCallable } from 'firebase/functions';
+
+const functions = getFunctions();
+const sendReminderToFriend = httpsCallable(functions, 'sendReminderToFriend');
+
 const HomeScreen = () => {
 
     const router = useRouter();
-    const [user,] = useAtom(userState);
+    const [user, setUser] = useAtom(userState);
     const [friends,] = useAtom(myFriends);
     // const [friendCommitments,] = useAtom(friendCommitmentsState);
     const [friendWeekPlans, setFriendWeekPlans] = useAtom(friendWeekPlansState);
     const [stravaAuthLoading,] = useAtom(stravaAuthLoadingState);
     const [friendCommitmentsLoading] = useAtom(friendCommitmentsLoadingState);
     const [friendWeekPlansLoading] = useAtom(friendWeekPlansLoadingState)
-    
+
     const [friendsWithoutPlans, setFriendsWithoutPlans] = useState<User[]>([]);
     // const appImage = require('../../assets/images/btn_strava_connectwith_orange.png');
 
@@ -41,7 +46,7 @@ const HomeScreen = () => {
     const [test, setTest] = useState(-1);
     const [second, setSecond] = useState(-1);
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(-1);
 
     const handlePresentModalPress = useCallback(() => {
         setTest(0)
@@ -108,9 +113,9 @@ const HomeScreen = () => {
                                     <WeeklyCommitmentsDisplay weekPlanData={week} key={week.id} />
                                 )) : (friendCommitmentsLoading || friendWeekPlansLoading) ? (
                                     <View className='p-4 h-20 flex-row items-center justify-center w-full'>
-                                        <SpinLoader color='black'/>
+                                        <SpinLoader color='black' />
                                     </View>
-                                ): (
+                                ) : (
                                     <View className='p-4 h-20 flex-row items-center justify-start'>
                                         <Text>You have no friends with commitments this week.</Text>
                                     </View>
@@ -119,7 +124,7 @@ const HomeScreen = () => {
                             {!!friendsWithoutPlans.length && (
                                 <View>
                                     <Text className="font-medium text-xl p-4">Friends Needing Reminders</Text>
-                                    {friendsWithoutPlans.map(friend => (
+                                    {friendsWithoutPlans.map((friend, index) => (
                                         <View key={friend.id} className={"flex-row justify-between items-center p-4"}>
                                             <View className='flex-row justify-center items-center'>
                                                 <View className={`rounded-full justify-center items-center h-12 w-12 bg-[#a538ff]`}>
@@ -130,13 +135,30 @@ const HomeScreen = () => {
                                                 </View>
                                             </View>
                                             <View>
-                                                <TouchableOpacity className='bg-[#a538ff] h-10 w-20 justify-center items-center rounded-lg' onPress={() => console.log("send noti")}>
-                                                    {loading ? (
-                                                        <SpinLoader size={18} />
-                                                    ) : (
-                                                        <Text className='text-white'>Remind</Text>
-                                                    )}
-                                                </TouchableOpacity>
+                                                {(user.reminders_sent && user.reminders_sent.includes(friend.id)) ? (
+                                                    <TouchableOpacity className='bg-gray-200 h-10 w-20 justify-center items-center rounded-lg'>
+                                                        <Text className=''>Reminded</Text>
+                                                    </TouchableOpacity>
+                                                ) : (
+                                                    <TouchableOpacity className='bg-[#a538ff] h-10 w-20 justify-center items-center rounded-lg' onPress={() => {
+                                                        setLoading(index)
+                                                        sendReminderToFriend({ to: friend.id })
+                                                            .then(() => {
+                                                                setUser({
+                                                                    ...user,
+                                                                    reminders_sent: (user.reminders_sent ?? []).concat([friend.id])
+                                                                })
+                                                            })
+                                                            .catch(err => alert("Error sending reminder: " + JSON.stringify(err)))
+                                                            .finally(() => setLoading(-1))
+                                                    }}>
+                                                        {loading === index ? (
+                                                            <SpinLoader size={18} />
+                                                        ) : (
+                                                            <Text className='text-white'>Remind</Text>
+                                                        )}
+                                                    </TouchableOpacity>
+                                                )}
                                             </View>
                                         </View>
                                     ))}
@@ -224,7 +246,7 @@ const HomeScreen = () => {
                 //     if (index === -1) { Keyboard.dismiss() }
                 // }}
                 >
-                    <NotificationsModal onClose={handleCloseNotifications}/>
+                    <NotificationsModal onClose={handleCloseNotifications} />
                 </BottomSheetModal>
             </SafeAreaView>
         </LinearGradient>

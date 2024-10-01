@@ -10,11 +10,12 @@
 import * as functions from "firebase-functions";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
 import * as admin from "firebase-admin";
 import { DocumentData, Timestamp } from "firebase-admin/firestore";
 import axios from "axios";
-import { Expo, ExpoPushErrorReceipt, ExpoPushMessage } from 'expo-server-sdk';
+import { Expo, ExpoPushErrorReceipt, ExpoPushMessage, ExpoPushSuccessTicket } from 'expo-server-sdk';
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -239,8 +240,8 @@ export const activityIDAttached = onDocumentUpdated("commitments/{commitmentId}"
       const notif: ExpoPushMessage = {
         to: pushToken,
         sound: 'default',
-        title: `${name} really did it.`,
-        body: `${data.name || "Today's Run"} - complete.`,
+        title: `${name} did it`,
+        body: `${data.name || "Today's Run"} - complete`,
         badge: 1,
         data: { url: `/weekOfCommitments/${data.weekPlanId ?? "none"}` }
       }
@@ -434,8 +435,8 @@ exports.scheduledUpdateCommitmentsStatus = onSchedule("every 1 hours", async (ev
         const message: ExpoPushMessage = {
           to: friendSnap.data().pushToken,
           sound: 'default',
-          title: `Alert! ${pushDetails.name} failed.`,
-          body: `See which commitment.`,
+          title: `Alert! ${pushDetails.name} failed`,
+          body: `See which commitment`,
           badge: 1,
           data: { url: `/weekOfCommitments/${pushDetails.weekPlanId}` }
         }
@@ -511,3 +512,89 @@ exports.scheduledUpdateCommitmentsStatus = onSchedule("every 1 hours", async (ev
     logger.error('Error updating commitments:', error);
   }
 });
+
+
+exports.sendReminderToFriend = onCall(async (request) => {
+
+  const handlePushReceiptError = async ({ expoPushToken, error }: { expoPushToken?: string; error?: "DeveloperError" | "DeviceNotRegistered" | "ExpoError" | "InvalidCredentials" | "MessageRateExceeded" | "MessageTooBig" | "ProviderError" }) => {
+    if (!error) return;
+    if (error === "DeviceNotRegistered") {
+      logger.error("attempting to send push notification to device no longer registered")
+      if (!expoPushToken) return;
+      const usersWithTokenSnaps = await db.collection("users").where("pushToken", "==", expoPushToken).get();
+      if (usersWithTokenSnaps.empty) return;
+      // shouldn't be more than one but just in case;
+      // eventually this should be a concurrent operation;
+      usersWithTokenSnaps.docs.forEach(userWithToken => {
+        userWithToken.ref.update({
+          pushToken: admin.firestore.FieldValue.delete()
+        })
+      })
+      return;
+    }
+    logger.error(`We had a push error that wasn't a device registered issue: ${error}`)
+  }
+
+  if (!request.data.to) {
+    throw new HttpsError("invalid-argument", "The function must be called with a 'to' argument");
+  }
+  if (!request.auth) {
+    throw new HttpsError("failed-precondition", "The function must be " +
+      "called while authenticated.");
+  }
+  const fromUserSnap = await db.doc(`/users/${request.auth.uid}`).get();
+  const toUserSnap = await db.doc(`/users/${request.data.to}`).get();
+
+  if (!(fromUserSnap.data()?.friends || []).includes(request.data.to) || !(toUserSnap.data()?.friends || []).includes(request.auth.uid)) {
+    throw new HttpsError("permission-denied", "The requested pair are not friends")
+  }
+
+  if (!toUserSnap.data()?.pushToken || !Expo.isExpoPushToken(toUserSnap.data()?.pushToken)) {
+    throw new HttpsError("failed-precondition", "The user being reminded does not have push notifications enabled");
+  }
+
+  try {
+    const notif: ExpoPushMessage = {
+      to: toUserSnap.data()?.pushToken,
+      sound: 'default',
+      title: `Reminder from ${fromUserSnap.data()?.name}`,
+      body: `Fill out a your commitments for this week`,
+      badge: 1,
+      data: { url: `/commitments/index?showAddWorkout=true` }
+    }
+  
+    const pushNotificationsRef = db.collection("push_notifications")
+  
+    await pushNotificationsRef.doc().set({
+      content: notif,
+      userId: toUserSnap.id,
+      created_at: admin.firestore.FieldValue.serverTimestamp(),
+      viewed: false
+    }); 
+
+    await fromUserSnap.ref.update({
+      reminders_sent: fromUserSnap.data()?.reminders_sent ? (fromUserSnap.data()?.reminders_sent as string[]).concat([toUserSnap.id]) : [toUserSnap.id]
+    })
+  
+    const tickets = await expo.sendPushNotificationsAsync([notif])
+    if (tickets[0].status !== 'ok') {
+      logger.warn(tickets[0].message)
+    }
+  
+    const receipts = await expo.getPushNotificationReceiptsAsync(tickets.map(ticket => (ticket as ExpoPushSuccessTicket).id));
+    for (let receiptId in receipts) {
+      const { status } = receipts[receiptId];
+      if (status === 'ok') {
+        continue;
+      } else if (status === 'error') {
+        const { message, details, expoPushToken } = receipts[receiptId] as ExpoPushErrorReceipt;
+        logger.error(
+          `There was an error sending a notification: ${message}`
+        );
+        if (details && details.error) { handlePushReceiptError({ expoPushToken, error: details.error }) }
+      }
+    }
+  } catch (err) {
+    logger.error('Error sending reminder:', err);
+  }
+})
