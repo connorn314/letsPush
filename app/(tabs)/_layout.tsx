@@ -18,24 +18,7 @@ const HomeLayout = () => {
     const { createSessionFromUrl } = useAuth();
     const [loading, ] = useAtom(firebaseAuthLoadingState);
 
-    useEffect(() => {
-        const handleDeepLink = (event: any) => {
-            console.log(event)
-            const { url } = event;
-            console.log("Deep link received:", url);
-
-            // Extract OAuth tokens or code from the URL
-            createSessionFromUrl(url); // Handle the response here
-        };
-
-        // Attach the deep link listener
-        const subscription = Linking.addEventListener('url', handleDeepLink);
-
-        return () => {
-            // Clean up the listener when the component unmounts
-            subscription.remove();
-        };
-    }, []);
+    
 
     if (!loading && !user){
         // return <Redirect href={"/login"} />

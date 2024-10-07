@@ -2,7 +2,7 @@ import { lockPageOnCarousel, myWeekPlansState, myWorkoutsState } from "@/storage
 import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useAtom } from "jotai";
 import { LinearGradient } from "expo-linear-gradient";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NotificationsModal from "@/components/notificationsModal";
 import AddWorkoutModal from "@/components/addWorkout";
@@ -10,7 +10,7 @@ import { Keyboard, StyleSheet, TouchableOpacity, View, Text, ScrollView } from "
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Entypo from '@expo/vector-icons/Entypo';
 import PersonalCommitmentCard from "@/components/personalCommitmentCard";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import AddWeeklyCommitmentsModal from "@/components/addWeeklyCommitments";
 import WeeklyCommitmentsDisplay from "@/components/weeklyCommitmentsCard";
 
@@ -27,6 +27,8 @@ const WorkoutsPage = () => {
     const notificationModalRef = useRef<BottomSheetModal>(null);
 
     const router = useRouter();
+
+    const { showAddWorkout } = useLocalSearchParams();
     
     const [second, setSecond] = useState(-1);
     // // callbacks
@@ -51,6 +53,12 @@ const WorkoutsPage = () => {
         setSecond(-1)
         notificationModalRef.current?.close()
     }, [])
+
+    useEffect(() => {
+        if (showAddWorkout){
+            handlePresentModalPress()
+        }
+    }, [showAddWorkout])
 
     return (
         <LinearGradient

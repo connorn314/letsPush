@@ -35,7 +35,7 @@ const WeeklyCalendarDisplay = () => {
                                 <View className={`${myCommitments.find(commit => (
                                     commit.startDate.toDate().getDate() === item.day
                                     && commit.startDate.toDate().getMonth() + 1 === item.month
-                                    && commit.startDate.toDate().getFullYear() === item.year)) ? "bg-[#a538ff]" : ""} mt-2 rounded-full w-6 h-2 `} ></View>
+                                    && commit.startDate.toDate().getFullYear() === item.year)) ? "bg-[#a538ff]" : ""} mt-2 rounded-full w-4 h-1.5 `} ></View>
                             </TouchableOpacity>
                         ))}
                     </View>

@@ -9,10 +9,10 @@ const SingleOnboardingPage = ({ index, goNext }: { index: number, goNext: () => 
                 {index === 0 && (
                     <View className="w-full justify-center items-center">
                         <View>
-                            <Text className="text-3xl">Welcome to Besvarra</Text>
+                            <Text className="text-3xl" style={{ fontFamily: "BenchNine_400Regular"}}>Welcome to Besvarra</Text>
                         </View>
                         <View className="p-4">
-                            <Text className="text-center">Our mission is to help more people stick to their running goals by leveraging the power of social accountability and seamless integration with Strava.</Text>
+                            <Text className="text-center text-xl" style={{ fontFamily: "BenchNine_400Regular"}}>Our mission is to help more people stick to their running goals by leveraging the power of social accountability and seamless integration with Strava.</Text>
                         </View>
                     </View>
                 )}

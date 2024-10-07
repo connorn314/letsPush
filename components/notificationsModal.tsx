@@ -43,14 +43,13 @@ const NotificationsModal = ({ onClose }: { onClose: () => void }) => {
                                         viewNotification(push.id);
                                         setTimeout(() => router.push(`${goTo}` as Href<string>), 100)
                                     }
-                                }} key={push.id} className={`${!push.viewed && "bg-blue-100"} w-full h-24 p-4 flex-col justify-start `}>
+                                }} key={push.id} className={`${!push.viewed && "bg-blue-100"} w-full h-24 p-4 border-b-gray-200 border-b-[0.5px] flex-col justify-start `}>
                                     <Text className='font-medium mb-2'>{push.content.title}</Text>
                                     <Text className='mb-2'>{push.content.body}</Text>
-                                    <Text>{push.created_at.toDate().toLocaleString()}</Text>
+                                    <Text className='text-gray-400'>{push.created_at.toDate().toLocaleString()}</Text>
                                 </TouchableOpacity>
                             ))}
                 </View>
-
             </SafeAreaView>
         </View>
     )

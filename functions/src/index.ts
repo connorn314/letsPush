@@ -560,7 +560,7 @@ exports.sendReminderToFriend = onCall(async (request) => {
       title: `Reminder from ${fromUserSnap.data()?.name}`,
       body: `Fill out a your commitments for this week`,
       badge: 1,
-      data: { url: `/commitments/index?showAddWorkout=true` }
+      data: { url: `(tabs)/commitments?showAddWorkout=true` }
     }
   
     const pushNotificationsRef = db.collection("push_notifications")

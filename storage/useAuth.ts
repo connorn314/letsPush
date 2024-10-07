@@ -8,12 +8,18 @@ import { stravaAuthLoadingState, userState } from "./atomStorage";
 import { FIRESTORE_DB } from "../firebaseConfig";
 import { deleteDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { Athlete } from "../types/strava";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const useAuth = () => {
 
   const [user, setUser] = useAtom(userState);
+  const userRef = useRef(user)
   const [, setStravaAuthLoading] = useAtom(stravaAuthLoadingState);
+  // console.log("userOutside", user ? user.uid : null)
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user])
 
   useEffect(() => {
     if (user && user.id) {
@@ -75,30 +81,31 @@ const useAuth = () => {
 
       const { refresh_token, access_token, athlete, expires_at } = res.data
 
+      console.log("user", userRef)
       if (athlete){
-        const userRef = doc(FIRESTORE_DB, "users", user.uid);
-        await updateDoc(userRef, { strava_athlete_id: athlete.id, name: `${athlete.firstname} ${athlete.lastname}` });
+        const userReference = doc(FIRESTORE_DB, "users", userRef.current.uid);
+        await updateDoc(userReference, { strava_athlete_id: athlete.id, name: `${athlete.firstname} ${athlete.lastname}` });
       }
 
       // await syncStravaData({ refresh_token, access_token, expires_at, athlete  })
       // first we need to set the subscription 
-      const subscriptionRes = await axios.post("https://www.strava.com/api/v3/push_subscriptions", {
-        client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
-        client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
-        callback_url: process.env.EXPO_PUBLIC_WEBHOOK_URL,
-        verify_token: "BEVVARRA"
-      })
+      // const subscriptionRes = await axios.post("https://www.strava.com/api/v3/push_subscriptions", {
+      //   client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
+      //   client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
+      //   callback_url: process.env.EXPO_PUBLIC_WEBHOOK_URL,
+      //   verify_token: "BEVVARRA"
+      // })
 
-      const { id } = subscriptionRes.data;
+      // const { id } = subscriptionRes.data;
 
-      await syncStravaData({ refresh_token, access_token, athlete, expires_at, subscription_id: id })
+      await syncStravaData({ refresh_token, access_token, athlete, expires_at })
       console.log("stravaData synced")
       
       setUser({ 
-        ...user, 
+        ...userRef.current, 
         strava_athlete_id: athlete?.id, 
         name: `${athlete.firstname} ${athlete.lastname}`, 
-        strava: { refresh_token, access_token, athlete, expires_at, subscription_id: id } 
+        strava: { refresh_token, access_token, athlete, expires_at } 
       })
       return;
 
@@ -133,7 +140,7 @@ const useAuth = () => {
 
   const syncStravaData = async (stravaData: { refresh_token: string, access_token: string, expires_at: number, athlete?: Athlete, subscription_id?: string }) => {
 
-    const stravaDetailsRef = doc(FIRESTORE_DB, `users/${user.id}/strava`, `me`);
+    const stravaDetailsRef = doc(FIRESTORE_DB, `users/${userRef.current.id}/strava`, `me`);
     const stravaDoc = await getDoc(stravaDetailsRef);
 
     if (stravaDoc.exists()) {
@@ -148,6 +155,7 @@ const useAuth = () => {
     if (await Linking.canOpenURL(appOAuthUrlStravaScheme)) {
       // console.log(appOAuthUrlStravaScheme)
       try {
+        // console.log(appOAuthUrlStravaScheme)
         Linking.openURL(appOAuthUrlStravaScheme)
       } catch (err) {
         alert('err:' + err)

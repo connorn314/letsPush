@@ -135,7 +135,7 @@ const HomeScreen = () => {
                                                 </View>
                                             </View>
                                             <View>
-                                                {(user.reminders_sent && user.reminders_sent.includes(friend.id)) ? (
+                                                {(user?.reminders_sent && user.reminders_sent.includes(friend.id)) ? (
                                                     <TouchableOpacity className='bg-gray-200 h-10 w-20 justify-center items-center rounded-lg'>
                                                         <Text className=''>Reminded</Text>
                                                     </TouchableOpacity>
@@ -194,7 +194,7 @@ const HomeScreen = () => {
                     }}
                 >
                     <View className='h-[90%] justify-between items-center space-y-2 p-4'>
-                        {(user?.strava?.expires_at && (user?.strava?.expires_at > (Date.now() / 1000)) && user?.strava?.subscription_id) ? (
+                        {(user?.strava?.expires_at && (user?.strava?.expires_at > (Date.now() / 1000))) ? (
                             <TouchableOpacity className={` bg-[#FC4C02] h-[56px] rounded mb-2 w-full items-center justify-center `} onPress={stravaRemoveAuthentication}>
                                 {stravaAuthLoading ? (
                                     <View className='p-2'>
@@ -215,12 +215,12 @@ const HomeScreen = () => {
                                 )}
                             </TouchableOpacity>
                         )}
-                        {/* <TouchableOpacity className={` bg-white  w-full items-center justify-center`} onPress={stravaGetMe}>
-                                <Text className={`text-[#a538ff] text-xl p-3 rounded-lg`}>Get me Strava</Text>
+                        {/* <TouchableOpacity className={` bg-white  w-full items-center justify-center`} onPress={}>
+                                <Text className={`text-[#a538ff] text-xl p-3 rounded-lg`}>set sub</Text>
                             </TouchableOpacity> */}
-                        {(user?.strava?.expires_at && (user?.strava?.expires_at > (Date.now() / 1000)) && user?.strava?.subscription_id) && (
+                        {(user?.strava?.expires_at && (user?.strava?.expires_at > (Date.now() / 1000))) && (
                             <View className='w-full items-center justify-center'>
-                                <Text className='text-md font-medium'>Strava Id: {user.strava_athlete_id} | Subscription Id: {user.strava.subscription_id}</Text>
+                                <Text className='text-md font-medium'>Strava Id: {user.strava_athlete_id}</Text>
                             </View>
                         )}
                         <View className="w-full justify-center items-center">

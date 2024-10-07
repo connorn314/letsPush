@@ -17,7 +17,7 @@ const Login = ({ navigation }: any) => {
 
 
     const appImage = require('@/assets/images/besvarra_long_horiz.png');
-    const stravaImage = require('@/assets/images/api_logo_pwrdBy_strava_stack_light.png');
+    const stravaImage = require('@/assets/images/api_logo_pwrdBy_strava_stack_gray.png');
     // const [user, setUser] = useAtom(userState);
     // const [withPassword, setWithPassword] = useState(false);
 
@@ -72,7 +72,7 @@ const Login = ({ navigation }: any) => {
                             <KeyboardAvoidingView behavior="padding" className=" w-full px-4 flex justify-center items-center">
                                 <View className=" w-full flex justify-center items-center">
                                     <View className="mb-12">
-                                        <Text className=" text-[50px] font-semibold mb-6">Ruñet</Text>
+                                        <Text className=" text-[50px] font-black mb-6" style={{ fontFamily: "BenchNine_700Bold"}}>Ruñet</Text>
                                         {/* <Image source={appImage} className="w-screen h-20"
                                             style={{
                                                 borderBottomLeftRadius: 5,
@@ -87,47 +87,49 @@ const Login = ({ navigation }: any) => {
                                     </TouchableOpacity> */}
                                     <View className="w-full space-y-4 mb-4">
                                         <View className="w-full relative ">
+                                            <Text className="py-2">Email</Text>
                                             <TextInput
                                                 placeholder="Email"
-                                                className=" border-black border-2 rounded-lg"
-                                                style={{ paddingVertical: 16, paddingHorizontal: 36 }}
+                                                className=" border border-gray-200 rounded-lg"
+                                                style={{ paddingVertical: 16, paddingHorizontal: 16 }}
                                                 placeholderTextColor={"gray"}
                                                 value={email}
                                                 onChangeText={(text) => setEmail(text)} />
-                                            <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
-                                                <MaterialCommunityIcons name="email-outline" className="absolute left-0" size={24} color="black" />
-                                            </View>
+                                            {/* <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
+                                                <MaterialCommunityIcons name="email-outline" className="absolute left-0" size={20} color="black" />
+                                            </View> */}
                                         </View>
 
                                         <View className="w-full relative ">
+                                            <Text className="py-2">Password</Text>
                                             <TextInput
                                                 placeholder="Password"
-                                                className=" border-black border-2 rounded-lg"
-                                                style={{ paddingVertical: 16, paddingHorizontal: 36 }}
+                                                className="border border-gray-200  rounded-lg"
+                                                style={{ paddingVertical: 16, paddingHorizontal: 16 }}
                                                 value={password}
                                                 placeholderTextColor={"gray"}
                                                 onChangeText={(text) => setPassword(text)}
                                                 secureTextEntry />
-                                            <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
-                                                <Feather name="lock" size={24} color="black" />
-                                            </View>
+                                            {/* <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
+                                                <Feather name="lock" size={20} color="black" />
+                                            </View> */}
                                         </View>
 
                                     </View>
                                     <View className="w-full">
-                                        <TouchableOpacity className="bg-[#a538ff] mb-6 w-full rounded-xl h-14 mt-1 justify-center items-center"
+                                        <TouchableOpacity className="bg-[#a538ff] mb-6 w-full rounded-xl h-14 mt-4 justify-center items-center"
                                             onPress={handleSignIn}  >
                                             {loading ? (
                                                 <SpinLoader />
                                             ) : (
-                                                <Text className="text-lg text-white font-medium">Log in</Text>
+                                                <Text className="text text-white font-medium">Log in</Text>
                                             )}
                                         </TouchableOpacity>
-                                        <View className="w-full justify-center items-center mb-6">
+                                        {/* <View className="w-full justify-center items-center mb-6">
                                             <Text className="text-md underline text-black">forgot password?</Text>
-                                        </View>
+                                        </View> */}
                                         <View className="w-full items-center justify-center">
-                                            <Image source={stravaImage} className="w-28 h-28"
+                                            <Image source={stravaImage} className="w-24 h-24"
                                                 style={{
                                                     borderBottomLeftRadius: 5,
                                                     borderBottomRightRadius: 5,
@@ -192,7 +194,7 @@ const Login = ({ navigation }: any) => {
 
                         {/* Create Account */}
                         <View className="flex flex-row justify-center items-center">
-                            <Text>Need an Account?</Text>
+                            <Text className="text-gray-500">Need an Account?</Text>
                             <TouchableOpacity className="underline" onPress={handleOpenPress}>
                                 <Text className="underline ml-1">Sign Up</Text>
                             </TouchableOpacity>

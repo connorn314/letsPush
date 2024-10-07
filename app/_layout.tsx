@@ -1,5 +1,5 @@
 
-import { Stack, Redirect, useRouter } from "expo-router";
+import { Stack, Redirect, useRouter, usePathname } from "expo-router";
 import { createStore, Provider, useAtom } from 'jotai';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
@@ -13,10 +13,14 @@ import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { FIREBASE_AUTH, FIRESTORE_DB } from "@/firebaseConfig";
 import { View } from "react-native";
 import SpinLoader from "@/components/spinLoader";
-
+import { BenchNine_400Regular, BenchNine_700Bold, useFonts } from '@expo-google-fonts/benchnine'
 // if we ever want to prevent hide of splash screen to load things in background
-// import { SplashScreen } from "expo-router";
-// SplashScreen.preventAutoHideAsync();
+import { SplashScreen } from "expo-router";
+import * as Linking from "expo-linking";
+import useAuth from "@/storage/useAuth";
+
+
+SplashScreen.preventAutoHideAsync();
 
 
 NativeWindStyleSheet.setOutput({
@@ -27,10 +31,17 @@ export const store = createStore();
 
 const RootLayout = () => {
 
+    let [fontsLoaded] = useFonts({
+        BenchNine_400Regular,
+        BenchNine_700Bold
+    })
+
     // something like this if we wanted to load assets here
-    // if (!loaded) {
-    //     return null
-    // }
+    if (!fontsLoaded) {
+        return null
+    }
+
+    SplashScreen.hideAsync()
 
     return (
     <Provider store={store}>
@@ -56,15 +67,18 @@ const RootLayoutNav = () => {
     const [expoToken,] = useAtom(expoPushTokenState);
     const [loading, setLoading] = useAtom(firebaseAuthLoadingState);
     const router = useRouter();
+    const path = usePathname();
     const [notification, ] = useAtom(notificationState);
+    const { createSessionFromUrl } = useAuth();
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, userObj => {
             if (userObj) {
-                getMe(userObj).then(res => {
-                    console.log(res);
-                    router.push("/(tabs)/home")
-                });
+                getMe(userObj);
+                // .then(res => {
+                //     // console.log(res); 
+                //     router.push("/(tabs)/home")
+                // });
             } else {
                 setUser(null);
                 setLoading(false);
@@ -114,11 +128,32 @@ const RootLayoutNav = () => {
     }
 
     useEffect(() => {
-        if (!loading && !user){
+        if (!loading && !user && (!path.includes("onboarding") || !path.includes("login"))){
             // router.push("/login")
             router.push("/onboarding")
+        } else if (user && (path.includes("onboarding") || path.includes("login"))) {
+            router.push("/(tabs)/home")
         }
     }, [user])
+
+    useEffect(() => {
+        const handleDeepLink = (event: any) => {
+            console.log(event)
+            const { url } = event;
+            console.log("Deep link received:", url);
+
+            // Extract OAuth tokens or code from the URL
+            createSessionFromUrl(url); // Handle the response here
+        };
+
+        // Attach the deep link listener
+        const subscription = Linking.addEventListener('url', handleDeepLink);
+
+        return () => {
+            // Clean up the listener when the component unmounts
+            subscription.remove();
+        };
+    }, [user]);
 
     if (loading) {
         return (
@@ -129,13 +164,14 @@ const RootLayoutNav = () => {
     }
     
     return (
-        <Stack >
+        <Stack screenOptions={{ gestureEnabled: false }} >
             <Stack.Screen name="(tabs)" options={{headerShown: false}} />
             <Stack.Screen name="commitment/[commitmentId]" options={{headerShown: false}} />
             <Stack.Screen name="profile/[userId]" options={{headerShown: false}} />
             <Stack.Screen name="login" options={{headerShown: false}} />
             <Stack.Screen name="onboarding" options={{headerShown: false}} />
             <Stack.Screen name="weekOfCommitments/[weekPlanId]" options={{headerShown: false}} />
+            <Stack.Screen name="bevvarra.com" options={{ headerBackTitle: "Home", title: "Strava Status" }} />
         </Stack>
     )
 }
