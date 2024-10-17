@@ -9,7 +9,7 @@ const SingleOnboardingPage = ({ index, goNext }: { index: number, goNext: () => 
                 {index === 0 && (
                     <View className="w-full justify-center items-center">
                         <View>
-                            <Text className="text-3xl" style={{ fontFamily: "BenchNine_400Regular"}}>Welcome to Besvarra</Text>
+                            <Text className="text-3xl" style={{ fontFamily: "BenchNine_400Regular"}}>Welcome to Ruñet</Text>
                         </View>
                         <View className="p-4">
                             <Text className="text-center text-xl" style={{ fontFamily: "BenchNine_400Regular"}}>Our mission is to help more people stick to their running goals by leveraging the power of social accountability and seamless integration with Strava.</Text>
@@ -23,7 +23,7 @@ const SingleOnboardingPage = ({ index, goNext }: { index: number, goNext: () => 
                                 <Text className="text-2xl font-medium mb-2">3 things to know</Text>
                             </View>
                             <View className="flex-row justify-start items-center my-4">
-                                <View className="w-12 h-12 mr-4 my-4 rounded-full items-center justify-center bg-[#a538ff]">
+                                <View className="w-12 h-12 mr-4 my-4 rounded-full items-center justify-center bg-main">
                                     <Text className="text-white text-lg font-medium">1</Text>
                                 </View>
                                 <View className="w-3/4">
@@ -32,7 +32,7 @@ const SingleOnboardingPage = ({ index, goNext }: { index: number, goNext: () => 
                                 </View>
                             </View>
                             <View className="flex-row justify-start items-center my-4">
-                                <View className="w-12 h-12 mr-4 my-4 rounded-full items-center justify-center bg-[#a538ff]">
+                                <View className="w-12 h-12 mr-4 my-4 rounded-full items-center justify-center bg-main">
                                     <Text className="text-white text-lg font-medium">2</Text>
                                 </View>
                                 <View className="w-3/4">
@@ -41,7 +41,7 @@ const SingleOnboardingPage = ({ index, goNext }: { index: number, goNext: () => 
                                 </View>
                             </View>
                             <View className="flex-row justify-start items-center my-4">
-                                <View className="w-12 h-12 mr-4 my-4 rounded-full items-center justify-center bg-[#a538ff]">
+                                <View className="w-12 h-12 mr-4 my-4 rounded-full items-center justify-center bg-main">
                                     <Text className="text-white text-lg font-medium">3</Text>
                                 </View>
                                 <View className="w-3/4">
@@ -53,11 +53,16 @@ const SingleOnboardingPage = ({ index, goNext }: { index: number, goNext: () => 
                     </View>
                 )}
                 {index > 1 && (
-                    <View className="w-full justify-center items-center">
-                        <Text className="text-3xl text-center">Add commitments, add friends, see who's really about that life!</Text>
+                    <View className="w-full justify-center items-start space-y-8">
+                        <Text className="text-xl font-medium text-start">Put simply...</Text>
+                        <Text className="text-xl font-medium text-start">You create weekly running plans.</Text>
+                        <Text className="text-xl font-medium text-start">Your friends are notified every time you complete or fail to attempt a run.</Text>
+                        <Text className="text-xl font-medium text-start">You are notified when your friends show up to their runs, and when they don't.</Text>
+                        <Text className="text-xl font-medium text-start">Outwork your network.</Text>
+                        <Text className="text-xl font-medium text-start">Also, have fun.</Text>
                     </View>
                 )}
-                <TouchableOpacity className="bg-[#a538ff] absolute bottom-4 mb-6 w-full rounded-xl h-14 mt-1 justify-center items-center"
+                <TouchableOpacity className="bg-main absolute bottom-4 mb-6 w-full rounded-xl h-14 mt-1 justify-center items-center"
                     onPress={() => goNext()}>
                     <Text className="text-white ">{index > 1 ? "Get started" : "Next"}</Text>
                 </TouchableOpacity>

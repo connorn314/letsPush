@@ -99,7 +99,7 @@ const useAuth = () => {
       // const { id } = subscriptionRes.data;
 
       await syncStravaData({ refresh_token, access_token, athlete, expires_at })
-      console.log("stravaData synced")
+      // console.log("stravaData synced")
       
       setUser({ 
         ...userRef.current, 
@@ -126,7 +126,7 @@ const useAuth = () => {
         grant_type: "refresh_token"
       })
 
-      console.log("refresh response", res.data, res.status)
+      // console.log("refresh response", res.data, res.status)
 
       const { refresh_token, access_token, expires_at } = res.data
       await syncStravaData({ refresh_token, access_token, expires_at })

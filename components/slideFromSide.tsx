@@ -11,6 +11,7 @@ interface SlideWrapperProps {
 const SlideWrapper = ({ direction, children, duration }: SlideWrapperProps) => {
     const translateX = useSharedValue(0);
     const translateY = useSharedValue(0);
+    // const opacity = useSharedValue(0);
 
     useEffect(() => {
         switch (direction) {
@@ -31,6 +32,7 @@ const SlideWrapper = ({ direction, children, duration }: SlideWrapperProps) => {
                 translateY.value = withTiming(0, { duration });
                 break;
         }
+        // opacity.value = withTiming(1, { duration })
     }, [direction, translateX, translateY]);
 
     const animatedStyle = useAnimatedStyle(() => ({
@@ -38,6 +40,7 @@ const SlideWrapper = ({ direction, children, duration }: SlideWrapperProps) => {
             { translateX: translateX.value },
             { translateY: translateY.value },
         ],
+        // opacity: opacity.value
     }));
 
     return (

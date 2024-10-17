@@ -44,15 +44,15 @@ const RootLayout = () => {
     SplashScreen.hideAsync()
 
     return (
-    <Provider store={store}>
-        <SafeAreaProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-                <BottomSheetModalProvider>
-                    <RootLayoutNav />
-                </BottomSheetModalProvider>
-            </GestureHandlerRootView>
-        </SafeAreaProvider>
-    </Provider>
+        <Provider store={store}>
+            <SafeAreaProvider>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                    <BottomSheetModalProvider>
+                        <RootLayoutNav />
+                    </BottomSheetModalProvider>
+                </GestureHandlerRootView>
+            </SafeAreaProvider>
+        </Provider>
     )
 }
 
@@ -68,7 +68,7 @@ const RootLayoutNav = () => {
     const [loading, setLoading] = useAtom(firebaseAuthLoadingState);
     const router = useRouter();
     const path = usePathname();
-    const [notification, ] = useAtom(notificationState);
+    const [notification,] = useAtom(notificationState);
     const { createSessionFromUrl } = useAuth();
 
     useEffect(() => {
@@ -119,7 +119,7 @@ const RootLayoutNav = () => {
             if (userDoc.exists()) {
                 // const profile = userDoc.data();
                 setUser({ ...userObj, id: userObj.uid, ...userDoc.data(), strava: stravaDoc.exists() ? stravaDoc.data() : undefined });
-            } 
+            }
             setLoading(false);
         } catch (err: any) {
             console.log(err, "err")
@@ -128,7 +128,7 @@ const RootLayoutNav = () => {
     }
 
     useEffect(() => {
-        if (!loading && !user && (!path.includes("onboarding") || !path.includes("login"))){
+        if (!loading && !user && (!path.includes("onboarding") || !path.includes("login"))) {
             // router.push("/login")
             router.push("/onboarding")
         } else if (user && (path.includes("onboarding") || path.includes("login"))) {
@@ -162,15 +162,16 @@ const RootLayoutNav = () => {
             </View>
         );
     }
-    
+
     return (
-        <Stack screenOptions={{ gestureEnabled: false }} >
-            <Stack.Screen name="(tabs)" options={{headerShown: false}} />
-            <Stack.Screen name="commitment/[commitmentId]" options={{headerShown: false}} />
-            <Stack.Screen name="profile/[userId]" options={{headerShown: false}} />
-            <Stack.Screen name="login" options={{headerShown: false}} />
-            <Stack.Screen name="onboarding" options={{headerShown: false}} />
-            <Stack.Screen name="weekOfCommitments/[weekPlanId]" options={{headerShown: false}} />
+        <Stack >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: "fade", gestureEnabled: false }}  />
+            <Stack.Screen name="commitment/[commitmentId]" options={{ headerShown: false }} />
+            <Stack.Screen name="profile/[userId]" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: false, gestureEnabled: false }} />
+            <Stack.Screen name="signupModal" options={{ presentation: 'modal', headerShown: false }}/>
+            <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+            <Stack.Screen name="weekOfCommitments/[weekPlanId]" options={{ headerShown: false }} />
             <Stack.Screen name="bevvarra.com" options={{ headerBackTitle: "Home", title: "Strava Status" }} />
         </Stack>
     )

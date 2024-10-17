@@ -2,8 +2,8 @@ import { View, Text, KeyboardAvoidingView, TextInput, Image, TouchableOpacity } 
 import React, { useEffect, useState } from "react";
 
 import { FIREBASE_AUTH, FIRESTORE_DB } from "../firebaseConfig";
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { addDoc, collection, doc, getDoc, setDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, User } from "firebase/auth";
 // import { useAtom } from "jotai";
 // import { userState } from "../storage/atomStorage";
 // import {SocialIcon, SocialMediaType} from "@rneui/themed";
@@ -12,15 +12,16 @@ import SpinLoader from "./spinLoader";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { expoPushTokenState, userState } from "@/storage/atomStorage";
 import { useAtom } from "jotai";
-import { useRouter } from "expo-router";
+import { Href, Link, useRouter } from "expo-router";
 import TimezoneSelector from "./timezoneSelector";
+import DismissKeyboard from "./dismissKeyboard";
 
-const SignIn = ({ onClose }: { onClose: () => void }) => {
+const SignIn = ({ onClose }: { onClose?: () => void }) => {
 
     // const appImage = require('../../assets/images/icon.png');
     // const [user, setUser] = useAtom(userState);
-    const appImage = require('@/assets/images/besvarra_long_horiz.png');
-    const stravaImage = require('@/assets/images/api_logo_pwrdBy_strava_stack_light.png');
+    // const appImage = require('@/assets/images/besvarra_long_horiz.png');
+    // const stravaImage = require('@/assets/images/api_logo_pwrdBy_strava_stack_light.png');
 
 
     const router = useRouter();
@@ -34,9 +35,9 @@ const SignIn = ({ onClose }: { onClose: () => void }) => {
     const [, setUser] = useAtom(userState);
 
     // useEffect(() => {
-        // const tz = TimeZone.getTimeZone()
-        // console.log(tz, "tz")
-        // setSelectedTimezone(tz)
+    // const tz = TimeZone.getTimeZone()
+    // console.log(tz, "tz")
+    // setSelectedTimezone(tz)
     // }, [])
 
 
@@ -54,7 +55,7 @@ const SignIn = ({ onClose }: { onClose: () => void }) => {
         }
     }
 
-    const createUser = async (userObj: any) => {
+    const createUser = async (userObj: User) => {
         const userData = {
             name,
             created_at: Date.now(),
@@ -65,115 +66,93 @@ const SignIn = ({ onClose }: { onClose: () => void }) => {
         }
         // console.log("userData", userData)
         await setDoc(doc(FIRESTORE_DB, "users", userObj.uid), userData);
-        return await getDoc(doc(FIRESTORE_DB, "users", userObj.uid))
+        await setDoc(doc(FIRESTORE_DB, "searchable_users", userObj.uid), {
+            name,
+            email: userObj.email
+        });
+        return await getDoc(doc(FIRESTORE_DB, "users", userObj.uid));
     }
 
     return (
-        <View className={`h-full w-full px-4 flex justify-start items-center mt-10`}>
-            <View className="h-auto w-full flex justify-center items-center overflow-scroll">
+        <View className={`h-full w-full px-4 flex justify-start items-center`}>
+            <DismissKeyboard>
+                <View className="h-full w-full flex justify-center items-center overflow-scroll">
 
-                <KeyboardAvoidingView behavior="padding" className=" w-full px-4 flex justify-center items-center mt-12">
-                    <View className=" w-full flex justify-center items-center">
-                        <View className="mb-5">
-                            {/* <Image source={appImage} className="w-20 h-20" 
-                                style={{
-                                    borderBottomLeftRadius: 5,
-                                    borderBottomRightRadius: 5,
-                                    borderTopLeftRadius: 5,
-                                    borderTopRightRadius: 5,
-                                    }} resizeMode={"contain"}/> */}
-                            <Text className="text-xl font-semibold">Create your account</Text>
-                        </View>
-                        <View className="w-full space-y-4 mb-4">
-                            <View className="w-full relative ">
-                                <TextInput
-                                    placeholder="Name"
-                                    className=" border-black border-2 rounded-lg"
-                                    style={{ paddingVertical: 16, paddingHorizontal: 36 }}
-                                    placeholderTextColor={"gray"}
-                                    value={name}
-                                    onChangeText={(text) => setName(text)} />
-                                <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
-                                    <MaterialIcons name="person-outline" size={26} color="black" className="absolute left-0" />
+                    <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={100} className="h-full w-full px-4 flex justify-center items-center mt-4">
+                        <View className=" w-full flex justify-center items-center pb-20">
+                            <View className="mb-12 h-14 relative  w-full ">
+                                <Text className="top-0 text-center w-full absolute text-[50px] font-black mb-6 text-main" style={{ fontFamily: "BenchNine_700Bold" }}>Ruñet</Text>
+                                <Text className="top-0 text-center w-full absolute text-[50px] font-black mb-6" style={{ fontFamily: "BenchNine_700Bold" }}>Runet</Text>
+                            </View>
+                            <View className="mb-5">
+                                <Text className="text-xl font-medium">Create your account</Text>
+                            </View>
+                            <View className="w-full space-y-4 mb-4">
+                                <View className="w-full relative ">
+                                    <Text className="py-2">Name</Text>
+                                    <TextInput
+                                        placeholder="Name"
+                                        className=" border border-gray-200 bg-white rounded-lg"
+                                        style={{ paddingVertical: 16, paddingHorizontal: 16 }}
+                                        placeholderTextColor={"gray"}
+                                        value={name}
+                                        onChangeText={(text) => setName(text)} />
+                                </View>
+
+
+                                <View className="w-full relative ">
+                                    <Text className="py-2">Email</Text>
+                                    <TextInput
+                                        placeholder="Email"
+                                        className=" border border-gray-200 bg-white rounded-lg"
+                                        style={{ paddingVertical: 16, paddingHorizontal: 16 }}
+                                        placeholderTextColor={"gray"}
+                                        value={email}
+                                        onChangeText={(text) => setEmail(text)} />
+                                </View>
+
+                                <View className="w-full relative ">
+                                    <Text className="py-2">Password</Text>
+                                    <TextInput
+                                        placeholder="Password"
+                                        className=" border border-gray-200 bg-white rounded-lg"
+                                        style={{ paddingVertical: 16, paddingHorizontal: 16 }}
+                                        value={password}
+                                        placeholderTextColor={"gray"}
+                                        onChangeText={(text) => setPassword(text)}
+                                        secureTextEntry />
                                 </View>
                             </View>
-
-
-                            <View className="w-full relative ">
-                                <TextInput
-                                    placeholder="Email"
-                                    className=" border-black border-2 rounded-lg"
-                                    style={{ paddingVertical: 16, paddingHorizontal: 36 }}
-                                    placeholderTextColor={"gray"}
-                                    value={email}
-                                    onChangeText={(text) => setEmail(text)} />
-                                <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
-                                    <MaterialCommunityIcons name="email-outline" className="absolute left-0" size={24} color="black" />
-                                </View>
+                            <View className="w-full">
+                                <TouchableOpacity className="bg-main mb-6 w-full rounded-xl h-14 mt-4 justify-center items-center"
+                                    onPress={handleSignUp}  >
+                                    {loading ? (
+                                        <SpinLoader />
+                                    ) : (
+                                        <Text className="text text-white font-medium">Sign up</Text>
+                                    )}
+                                </TouchableOpacity>
                             </View>
-
-                            <View className="w-full relative ">
-                                <TextInput
-                                    placeholder="Password"
-                                    className=" border-black border-2 rounded-lg"
-                                    style={{ paddingVertical: 16, paddingHorizontal: 36 }}
-                                    value={password}
-                                    placeholderTextColor={"gray"}
-                                    onChangeText={(text) => setPassword(text)}
-                                    secureTextEntry />
-                                <View className="absolute left-2 top-0 bottom-0 justify-center items-center">
-                                    <Feather name="lock" size={24} color="black" />
-                                </View>
+                            <View className="flex flex-row justify-center items-center mt-4">
+                                {/* <Text className="text-gray-500">Need an Account? </Text> */}
+                                <TouchableOpacity className="underline" >
+                                    <Link href={".."}>
+                                        <Text className="underline ml-1">Cancel</Text>
+                                    </Link>
+                                </TouchableOpacity>
                             </View>
-                            {/* <TimezoneSelector /> */}
                         </View>
-                        <View className="w-full">
-                            <TouchableOpacity className="bg-[#a538ff] mb-6 w-full rounded-xl h-14 mt-1 justify-center items-center"
-                                onPress={handleSignUp}  >
-                                {loading ? (
-                                    <SpinLoader />
-                                ) : (
-                                    <Text className="text-xl text-white font-semibold">Sign up</Text>
-                                )}
-                            </TouchableOpacity>
-                            {/* <TouchableOpacity className=" mb-6 shadow-md border-rounded-full border-2 border-[#a538ff] w-full rounded-full py-4 mt-1 justify-center items-center"
-                                onPress={handleSignUp}  >
-                                <Text className="text-xl text-[#a538ff] font-semibold">Register</Text>
-                            </TouchableOpacity> */}
-                        </View>
+                    </KeyboardAvoidingView>
 
-                    </View>
-                </KeyboardAvoidingView>
-                <View className=" w-full justify-center overflow-visible pt-4 pb-12 items-center relative">
-
-                    {/* <Image source={appImage} className=" h-14"
-                        style={{
-                            borderBottomLeftRadius: 5,
-                            borderBottomRightRadius: 5,
-                            borderTopLeftRadius: 5,
-                            borderTopRightRadius: 5,
-                        }} resizeMode={"contain"} /> */}
-                    <Text className=" text-[50px] font-semibold mb-6">Ruñet</Text>
-                    <View className="justify-end  w-fit items-center pl-12 absolute bottom-0">
-                        <Image source={stravaImage} className="w-20 h-20 "
-                            style={{
-                                borderBottomLeftRadius: 5,
-                                borderBottomRightRadius: 5,
-                                borderTopLeftRadius: 5,
-                                borderTopRightRadius: 5,
-                            }} resizeMode={"contain"} />
-                    </View>
-                </View>
-
-                {/* Divider */}
-                {/* <View className="flex flex-row justify-evenly items-center w-full mb-4">
+                    {/* Divider */}
+                    {/* <View className="flex flex-row justify-evenly items-center w-full mb-4">
                     <View className="w-2/5 h-0.5 bg-gray-300"/>
                     <Text className="text-gray-300 font-semibold">or</Text>
                     <View className="w-2/5 h-0.5 bg-gray-300"/>
                 </View> */}
 
-                {/* Alternate sign in options */}
-                {/* <View className="flex justify-evenly items-center w-full">
+                    {/* Alternate sign in options */}
+                    {/* <View className="flex justify-evenly items-center w-full">
                     <TouchableOpacity className=" mb-2 shadow-sm bg-[#dd4b39] w-full rounded-lg mt-1 flex flex-row justify-center items-center"
                         onPress={() => console.log("Sign in with Google")}  >
                         <SocialIcon
@@ -209,7 +188,8 @@ const SignIn = ({ onClose }: { onClose: () => void }) => {
                         <Text className="text-white text-md text-center font-semibold ">Sign up with Facebook</Text>
                     </TouchableOpacity>
                 </View> */}
-            </View>
+                </View>
+            </DismissKeyboard>
         </View>
     )
 }

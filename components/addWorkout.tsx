@@ -94,7 +94,7 @@ const AddWorkoutModal = ({ onClose, workout }:
                 </View>
             </View>
             <View className="w-full flex-row justify-center items-center" >
-                <TouchableOpacity className={` w-full rounded-xl ${!isComplete() ? "bg-gray-400" : "bg-[#a538ff]"} justify-center items-center  p-4`}
+                <TouchableOpacity className={` w-full rounded-xl ${!isComplete() ? "bg-gray-400" : "bg-main"} justify-center items-center  p-4`}
                     onPress={() => {
                         if (isComplete()) {
                             onClose(formData)

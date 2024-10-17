@@ -21,13 +21,17 @@ const useFriendsCommitments = () => {
             setFriendWeekPlans([]);
             return;
         }
-        if (!user || !user.friends?.length) return;
+        if (!user || !user.friends?.length) {
+            setFriendCommitmentsLoading(false)
+            return;
+        };
 
         const q = query(
             collection(FIRESTORE_DB, 'week_plans'),
             where('userId', 'in', user.friends),
             where('start', '==', days[0].simpleString)
         );
+
 
         const subscriber = onSnapshot(q, {
             next: (snapshot) => {
@@ -36,6 +40,7 @@ const useFriendsCommitments = () => {
                     weekArr.push({ id: doc.id, ...doc.data() })
                 })
                 setFriendWeekPlans(weekArr);
+                setFriendCommitmentsLoading(false)
             },
             complete() {
                 setFriendCommitmentsLoading(false)
@@ -48,14 +53,18 @@ const useFriendsCommitments = () => {
 
         return () => subscriber();
 
-    }, [user])
+    }, [user, user?.friends?.length])
 
     useEffect(() => {
         if (!user && friendCommitments.length) {
             setFriendCommitments([]);
+            // setFriendWeekPlansLoading(false)
             return;
         }
-        if (!user || !user.friends?.length) return;
+        if (!user || !user.friends?.length) {
+            setFriendWeekPlansLoading(false)
+            return;
+        };
 
         const q = query(
             collection(FIRESTORE_DB, 'commitments'),
@@ -63,14 +72,15 @@ const useFriendsCommitments = () => {
             where('startDate', '>=', sundayDate),
             where('startDate', '<=', saturdayDate)
         );
-
         const subscriber = onSnapshot(q, {
             next: (snapshot) => {
+                console.log("snapshot", snapshot.empty)
                 const commitmentsArr: any[] = [];
                 snapshot.docs.forEach(doc => {
                     commitmentsArr.push({ id: doc.id, ...doc.data() })
                 })
                 setFriendCommitments(commitmentsArr);
+                setFriendWeekPlansLoading(false)
             },
             complete() {
                 setFriendWeekPlansLoading(false)
@@ -82,7 +92,7 @@ const useFriendsCommitments = () => {
         })
 
         return () => subscriber();
-    }, [user])
+    }, [user, user?.friends?.length])
 
     // useEffect(() => console.log("friend friendWeekPlans", friendWeekPlans), [friendWeekPlans])
     // useEffect(() => console.log("friend friendCommitments", friendCommitments), [friendCommitments])

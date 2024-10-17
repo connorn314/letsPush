@@ -60,7 +60,7 @@ const FriendsPage = () => {
                                                 })
                                             }}  >
                                             <View className="flex-row items-center w-full">
-                                                <Animated.View className="justify-center items-center h-12 w-12 bg-[#a538ff]" >
+                                                <Animated.View className="justify-center items-center h-12 w-12 bg-main" >
                                                     {/* <Text className="text-white">{item.name.length ? item.name[0].toLocaleUpperCase() : "U"}</Text> */}
                                                 </Animated.View>
                                                 <View className="grow ml-2">

@@ -104,7 +104,7 @@ const OneWeekSlide = ({ days }: { days: MyDate[] }) => {
                                     return (
                                         <View key={`_matching_${day.simpleString}`} className="w-full flex-row my-1 justify-between items-center">
                                             <Text>{day.simpleString}</Text>
-                                            <View className={`rounded-lg ${temp ? "bg-blue-200" : ""}  h-10 w-20 flex-row justify-center items-center`}>
+                                            <View className={`rounded-lg ${temp ? "bg-[#e9cfff] bg-opacity-30" : ""}  h-10 w-20 flex-row justify-center items-center`}>
                                                 <Text className=" ">{
                                                     temp ? `${temp} mi run` : `rest`
                                                 }</Text>

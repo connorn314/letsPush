@@ -157,7 +157,7 @@ const CreateWeekOfCommitments = ({ days, onCancel }: { days: MyDate[], onCancel:
             </KeyboardAvoidingView>
 
             <View className="w-full bottom-4 absolute px-4">
-                <TouchableOpacity className={` rounded-xl ${!isComplete() ? "bg-gray-400" : "bg-[#a538ff]"} justify-center items-center h-16 `}
+                <TouchableOpacity className={` rounded-xl ${!isComplete() ? "bg-gray-400" : "bg-main"} justify-center items-center h-16 `}
                     onPress={() => isComplete() ? handleSubmit() : alert("please complete required fields")}>
                     {loading ? (
                         <SpinLoader />
@@ -265,7 +265,7 @@ const WorkoutSelection = ({ date, dayOfWeek, workout, restState, onSaveNewWorkou
                                 onPressRest()
                                 if (createWorkout) { setCreateWorkout(false) }
                             }} >
-                                <Animated.View style={[{}, animatedRestButton]} className={`${restState ? "bg-blue-200" : ""} rounded-lg h-12 flex-row justify-center items-center`}>
+                                <Animated.View style={[{}, animatedRestButton]} className={`${restState ? "bg-[#e9cfff] bg-opacity-30" : ""} rounded-lg h-12 flex-row justify-center items-center`}>
                                     <View className="flex-row justify-center items-center">
                                         {restState && (
                                             <View className=" pr-2">
@@ -281,7 +281,7 @@ const WorkoutSelection = ({ date, dayOfWeek, workout, restState, onSaveNewWorkou
                                 onPressAddWorkout()
                                 if (restState) { onPressRest() }
                             }}>
-                                <Animated.View style={[{}, animatedWorkoutButton]} className={`${(workout && workout.content) ? "bg-blue-200" : (createWorkout ? "bg-gray-200" : "")} rounded-lg h-12 mr-4 flex-row justify-center items-center`}>
+                                <Animated.View style={[{}, animatedWorkoutButton]} className={`${(workout && workout.content) ? "bg-[#e9cfff] bg-opacity-30" : (createWorkout ? "bg-gray-200" : "")} rounded-lg h-12 mr-4 flex-row justify-center items-center`}>
                                     {(createWorkout || (workout && workout.content)) ? (
                                         <View className="flex-row justify-center items-center">
                                             <View className=" pr-2">

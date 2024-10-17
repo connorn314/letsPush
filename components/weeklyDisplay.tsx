@@ -25,7 +25,7 @@ const WeeklyCalendarDisplay = () => {
                     <View className="w-full items-start">
                         <Text className="font-medium">{weekdays[0].monthString}{weekdays[0].monthString !== weekdays[6].monthString && ` - ${weekdays[6].monthString}`}</Text>
                     </View>
-                    <View className="flex-row justify-between items-center pb-4 rounded-lg pt-4">
+                    <View className="flex-row justify-between w-full items-center pb-4 rounded-lg pt-4">
                         {weekdays.map(item => (
                             <TouchableOpacity onPress={() => setCurrSelection(item)} key={`${item.year}_${item.simpleString}`} className={` items-center justify-center`}>
                                 <View className={`${item.today ? "bg-black" : ""} w-3 h-3 mb-2 rotate-45`} />
@@ -35,7 +35,7 @@ const WeeklyCalendarDisplay = () => {
                                 <View className={`${myCommitments.find(commit => (
                                     commit.startDate.toDate().getDate() === item.day
                                     && commit.startDate.toDate().getMonth() + 1 === item.month
-                                    && commit.startDate.toDate().getFullYear() === item.year)) ? "bg-[#a538ff]" : ""} mt-2 rounded-full w-4 h-1.5 `} ></View>
+                                    && commit.startDate.toDate().getFullYear() === item.year)) ? "bg-main" : ""} mt-2 rounded-full w-4 h-1.5 `} ></View>
                             </TouchableOpacity>
                         ))}
                     </View>

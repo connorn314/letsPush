@@ -1,5 +1,5 @@
 import { useAtom } from 'jotai';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { myFriends, userState } from '@/storage/atomStorage';
 import { Workout } from '../types/workouts';
@@ -8,12 +8,15 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Entypo from '@expo/vector-icons/Entypo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { actualPaceFaster, calculatePace, convertSeconds, formatTime, metersToMiles, parsePace } from '../util/helpers';
+import * as Linking from "expo-linking";
 
 const CommitmentCard = ({ commitment, onPress, personal }: { commitment: Workout, onPress: () => void, personal?: boolean }) => {
 
     const date = commitment.startDate.toDate();
     const [friends] = useAtom(myFriends);
     const [author, setAuthor] = useState<User | null>(null);
+
+    const paceObject = useMemo(() => ((commitment?.strava?.moving_time && commitment?.strava.distance) ? calculatePace(commitment.strava.moving_time, metersToMiles(commitment.strava.distance)) : undefined ), [commitment.strava]);
 
     useEffect(() => setAuthor(friends.find(friend => friend.id === commitment.userId) ?? null), [friends])
     // useEffect(() => console.log(author), [author])
@@ -23,7 +26,7 @@ const CommitmentCard = ({ commitment, onPress, personal }: { commitment: Workout
                 <View className='flex-row justify-between items-center w-full'>
                     <View className='flex-row justify-start items-center'>
                         {/* <View className={`rounded-full justify-center items-center h-16 w-16 ${commitment.status === "complete" ? "bg-green-300" : (commitment.status === "failure" ? "bg-red-400" : "bg-slate-200")}`}> */}
-                        <View className={`rounded-full justify-center items-center h-16 w-16 bg-[#a538ff]`}>
+                        <View className={`rounded-full justify-center items-center h-16 w-16 bg-main`}>
                             <Text className={`text-2xl font-semibold text-center text-white `}>{`${author?.name[0]?.toLocaleUpperCase() ?? "N"}`}</Text>
                         </View>
                         <View className="ml-2">
@@ -31,7 +34,7 @@ const CommitmentCard = ({ commitment, onPress, personal }: { commitment: Workout
                             <Text className='text-sm h-6 '>{personal ? "Me" : author?.name} </Text>
                             <View className='flex-row justify-start items-center py-1'>
                                 <FontAwesome5 name="running" size={18} color="black" />
-                                <Text className='ml-2 font-medium'>Scheduled for {`${date.getMonth() + 1}/${date.getDate()}`}</Text>
+                                <Text className='ml-2 font-medium'>{commitment.status === "NA" ? "Scheduled" : (commitment.status === "complete" ? "Completed" : "Failed")} for {`${date.getMonth() + 1}/${date.getDate()}`}</Text>
                             </View>
                         </View>
                     </View>
@@ -60,13 +63,13 @@ const CommitmentCard = ({ commitment, onPress, personal }: { commitment: Workout
                             <Text className={` ${commitment?.strava ? "text-md" : "text-xl"}`}>{commitment.distance} mi</Text>
                         </View>
                         <View className={`ml-4 `}>
-                            <View className={`flex-row items-center ${commitment?.strava ? `${actualPaceFaster(calculatePace(commitment.strava.moving_time, metersToMiles(commitment?.strava?.distance)), parsePace(commitment.pace)) ? "bg-[#75ffa1]" : "bg-[#fd474c]"} justify-center py-1 px-2 rounded-full` : ""}`}>
-                                {commitment?.strava && <CommitmentIcon a={actualPaceFaster(calculatePace(commitment.strava.moving_time, metersToMiles(commitment?.strava?.distance)), parsePace(commitment.pace))} />}
+                            <View className={`flex-row items-center ${paceObject ? `${actualPaceFaster(paceObject, parsePace(commitment.pace)) ? "bg-[#75ffa1]" : "bg-[#fd474c]"} justify-center py-1 px-2 rounded-full` : ""}`}>
+                                {paceObject && <CommitmentIcon a={actualPaceFaster(paceObject, parsePace(commitment.pace))} />}
                                 <View className=''>
                                     <Text className='font-medium  mr-1'>Pace</Text>
                                 </View>
                             </View>
-                            {commitment?.strava?.moving_time && commitment.strava.distance && <Text className="text-xl">{`${calculatePace(commitment.strava.moving_time, metersToMiles(commitment?.strava?.distance)).minutes}:${calculatePace(commitment.strava.moving_time, metersToMiles(commitment?.strava?.distance)).seconds}`}" / mi</Text>}
+                            {paceObject && <Text className="text-xl">{`${paceObject.minutes}:${paceObject.seconds > 9 ? paceObject.seconds : `0${paceObject.seconds}`}`}" / mi</Text>}
                             <Text className={`${commitment?.strava ? "text-md" : "text-xl"}`}>{(commitment.pace.length <= 2 ? "00" : commitment.pace.length === 3 ? `0${commitment.pace.slice(0, commitment.pace.length - 2)}` : commitment.pace.slice(0, commitment.pace.length - 2))}:{(commitment.pace.length > 2 ? commitment.pace.slice(commitment.pace.length - 2) : (commitment.pace.length === 1 ? `0${commitment.pace}` : commitment.pace)) || "00"}" / mi</Text>
                         </View>
                     </View>
@@ -81,7 +84,7 @@ const CommitmentCard = ({ commitment, onPress, personal }: { commitment: Workout
 
                 </View>
                 {commitment.strava && (
-                    <TouchableOpacity onPress={() => console.log("link to strava")} className='w-full flex-row justify-end items-center'>
+                    <TouchableOpacity onPress={() => Linking.openURL(`https://www.strava.com/activities/${commitment.strava_activity_id}`)} className='w-full flex-row justify-end items-center'>
                         <Text className='text-gray-600 underline'>See in Strava</Text>
                     </TouchableOpacity>
                 )}

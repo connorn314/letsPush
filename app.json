@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "letsPush",
+    "name": "runet",
     "slug": "letsPush",
-    "scheme": "bevvarra.com",
+    "scheme": "runet.com",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

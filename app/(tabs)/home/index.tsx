@@ -1,5 +1,5 @@
 // import { collection, onSnapshot } from "firebase/firestore";
-import { View, Text, TouchableOpacity, Keyboard, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Keyboard, StyleSheet, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAtom } from "jotai";
@@ -9,44 +9,40 @@ import Feather from '@expo/vector-icons/Feather';
 import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Svg, { G, Rect, Path } from "react-native-svg"
-import { stravaAuthLoadingState, friendCommitmentsState, userState, friendWeekPlansState, myFriends, friendCommitmentsLoadingState, friendWeekPlansLoadingState } from '@/storage/atomStorage';
+import { stravaAuthLoadingState, userState, friendWeekPlansState, myFriends, friendCommitmentsLoadingState, friendWeekPlansLoadingState, hasBadgeNotificationsState, expandFriendReminderSection } from '@/storage/atomStorage';
 import useAuth from '@/storage/useAuth';
 import { FIREBASE_AUTH } from '@/firebaseConfig';
-import CommitmentCard from '@/components/commitmentCard';
 import WeeklyCalendarDisplay from '@/components/weeklyDisplay';
 import SpinLoader from '@/components/spinLoader';
 import NotificationsModal from '@/components/notificationsModal';
-import { useRouter } from 'expo-router';
+// import { useRouter } from 'expo-router';
 import WeeklyCommitmentsDisplay from '@/components/weeklyCommitmentsCard';
 import { User } from '@/types/user';
-
-import { getFunctions, httpsCallable } from 'firebase/functions';
-
-const functions = getFunctions();
-const sendReminderToFriend = httpsCallable(functions, 'sendReminderToFriend');
+import * as Notifications from 'expo-notifications';
+import RemindFriendSection from '@/components/remindFriendSection';
+import { useRouter } from 'expo-router';
+import Entypo from '@expo/vector-icons/Entypo';
 
 const HomeScreen = () => {
 
+    const { performOAuth, stravaRemoveAuthentication } = useAuth();
+
     const router = useRouter();
-    const [user, setUser] = useAtom(userState);
+
+    const [user, ] = useAtom(userState);
     const [friends,] = useAtom(myFriends);
-    // const [friendCommitments,] = useAtom(friendCommitmentsState);
-    const [friendWeekPlans, setFriendWeekPlans] = useAtom(friendWeekPlansState);
+    const [friendWeekPlans,] = useAtom(friendWeekPlansState);
     const [stravaAuthLoading,] = useAtom(stravaAuthLoadingState);
     const [friendCommitmentsLoading] = useAtom(friendCommitmentsLoadingState);
-    const [friendWeekPlansLoading] = useAtom(friendWeekPlansLoadingState)
-
-    const [friendsWithoutPlans, setFriendsWithoutPlans] = useState<User[]>([]);
-    // const appImage = require('../../assets/images/btn_strava_connectwith_orange.png');
+    const [friendWeekPlansLoading] = useAtom(friendWeekPlansLoadingState);
+    const [hasBadgeNotifications, setHasBadgeNotifications] = useAtom(hasBadgeNotificationsState);
 
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const notificationModalRef = useRef<BottomSheetModal>(null);
 
-    const { performOAuth, stravaRemoveAuthentication } = useAuth();
+    const [friendsWithoutPlans, setFriendsWithoutPlans] = useState<User[]>([]);
     const [test, setTest] = useState(-1);
     const [second, setSecond] = useState(-1);
-
-    const [loading, setLoading] = useState(-1);
 
     const handlePresentModalPress = useCallback(() => {
         setTest(0)
@@ -59,6 +55,8 @@ const HomeScreen = () => {
     }
 
     const handlePresentNotifications = useCallback(() => {
+        Notifications.setBadgeCountAsync(0);
+        setHasBadgeNotifications(false);
         setSecond(0)
         notificationModalRef.current?.present()
     }, [])
@@ -84,6 +82,12 @@ const HomeScreen = () => {
         }
     }, [friendWeekPlans, friends])
 
+    useEffect(() => {
+        Notifications.getBadgeCountAsync().then((val) => {
+            setHasBadgeNotifications(val !== 0)
+        }).catch(err => console.log("err getting badge count: " + JSON.stringify(err)))
+    }, []);
+
     return (
         <LinearGradient
             // Background Linear Gradient
@@ -92,7 +96,7 @@ const HomeScreen = () => {
             start={{ x: 0.9, y: 1 }}
             style={{ height: "100%", width: "100%", alignItems: "center", justifyContent: "center", paddingHorizontal: 20 }}
         >
-            <SafeAreaView className='w-screen'>
+            <SafeAreaView className='w-screen relative'>
                 <View className="items-center justify-start w-screen h-full " >
                     <View className='w-full flex-row justify-center items-center'>
                         <TouchableOpacity onPress={() => handlePresentModalPress()} className='p-4  rounded-full absolute top-2 left-4 '>
@@ -101,7 +105,10 @@ const HomeScreen = () => {
                         <Text className="text-lg text-black font-medium pt-6 pb-4">Home</Text>
 
                         <TouchableOpacity onPress={handlePresentNotifications} className='p-4  rounded-full absolute top-2 right-4 '>
-                            <FontAwesome5 name="bell" size={24} color="black" />
+                            <View className="relative">
+                                <FontAwesome5 name="bell" size={24} color="black" />
+                                {hasBadgeNotifications && <View className="h-3 w-3 bg-red-500 rounded-full border-[#f0f0f0] border-2 absolute top-0 right-0" />}
+                            </View>
                         </TouchableOpacity>
                     </View>
                     <View className="w-full ">
@@ -109,70 +116,39 @@ const HomeScreen = () => {
                             <WeeklyCalendarDisplay />
                             <View className='w-full'>
                                 <Text className="font-medium text-xl p-4">My Friends</Text>
-                                {friendWeekPlans.length ? friendWeekPlans.map(week => (
-                                    <WeeklyCommitmentsDisplay weekPlanData={week} key={week.id} />
-                                )) : (friendCommitmentsLoading || friendWeekPlansLoading) ? (
-                                    <View className='p-4 h-20 flex-row items-center justify-center w-full'>
-                                        <SpinLoader color='black' />
-                                    </View>
-                                ) : (
-                                    <View className='p-4 h-20 flex-row items-center justify-start'>
-                                        <Text>You have no friends with commitments this week.</Text>
+                                {friends?.length > 0 ? (<View>
+                                    {friendWeekPlans.length ? friendWeekPlans.map(week => (
+                                        <WeeklyCommitmentsDisplay weekPlanData={week} key={week.id} />
+                                    )) : (
+                                        <View className='p-4 h-20 flex-row items-center justify-center w-full'>
+                                            {(friendCommitmentsLoading || friendWeekPlansLoading) ? (
+                                                <SpinLoader color='black' />
+                                            ) : (
+                                                <Text>You have no friends with commitments this week.</Text>
+                                            )}
+                                        </View>
+                                    )}
+                                </View>
+                                ):(
+                                    <View className='w-full h-80 justify-center items-center'>
+                                        <Text className='font-medium mb-4'>Let's get you some friends first</Text>
+                                        <TouchableOpacity className='bg-main py-4 pr-6 pl-4 rounded-lg flex-row justify-center items-center' onPress={() => router.push("/(tabs)/friends")} >
+                                            <Entypo name="plus" size={16} color="white" />
+                                            <Text className='text-white font-medium ml-1'>Friends</Text>
+                                        </TouchableOpacity>
                                     </View>
                                 )}
                             </View>
                             {!!friendsWithoutPlans.length && (
-                                <View>
-                                    <Text className="font-medium text-xl p-4">Friends Needing Reminders</Text>
-                                    {friendsWithoutPlans.map((friend, index) => (
-                                        <View key={friend.id} className={"flex-row justify-between items-center p-4"}>
-                                            <View className='flex-row justify-center items-center'>
-                                                <View className={`rounded-full justify-center items-center h-12 w-12 bg-[#a538ff]`}>
-                                                    <Text className={`text-xl font-medium text-center text-white `}>{`${friend?.name[0]?.toLocaleUpperCase() ?? "N"}`}</Text>
-                                                </View>
-                                                <View className='ml-2'>
-                                                    <Text>{friend.name} has no plan...</Text>
-                                                </View>
-                                            </View>
-                                            <View>
-                                                {(user?.reminders_sent && user.reminders_sent.includes(friend.id)) ? (
-                                                    <TouchableOpacity className='bg-gray-200 h-10 w-20 justify-center items-center rounded-lg'>
-                                                        <Text className=''>Reminded</Text>
-                                                    </TouchableOpacity>
-                                                ) : (
-                                                    <TouchableOpacity className='bg-[#a538ff] h-10 w-20 justify-center items-center rounded-lg' onPress={() => {
-                                                        setLoading(index)
-                                                        sendReminderToFriend({ to: friend.id })
-                                                            .then(() => {
-                                                                setUser({
-                                                                    ...user,
-                                                                    reminders_sent: (user.reminders_sent ?? []).concat([friend.id])
-                                                                })
-                                                            })
-                                                            .catch(err => alert("Error sending reminder: " + JSON.stringify(err)))
-                                                            .finally(() => setLoading(-1))
-                                                    }}>
-                                                        {loading === index ? (
-                                                            <SpinLoader size={18} />
-                                                        ) : (
-                                                            <Text className='text-white'>Remind</Text>
-                                                        )}
-                                                    </TouchableOpacity>
-                                                )}
-                                            </View>
-                                        </View>
+                                <View className='p-4 '>
+                                    <Text className="font-medium text-xl pb-4">Friends Needing Reminders</Text>
+                                    {friendsWithoutPlans.map((friend) => (
+                                        <RemindFriendSection friend={friend} key={friend.id} />
                                     ))}
+
                                 </View>
                             )}
-                            <View className='w-full h-20' />
-                            {/* {friendCommitments.sort((a, b) => a.startDate.toDate().getTime() - b.startDate.toDate().getTime()).map(item => (
-                                <CommitmentCard key={`${item.id}`} commitment={item} onPress={() => router.push({
-                                    pathname: `/commitment/[commitmentId]`,
-                                    params: {
-                                        commitmentId: item.id
-                                    }
-                                })} />
-                            ))} */}
+                            <View className='w-full h-40' />
                         </ScrollView>
 
                     </View>
@@ -216,7 +192,7 @@ const HomeScreen = () => {
                             </TouchableOpacity>
                         )}
                         {/* <TouchableOpacity className={` bg-white  w-full items-center justify-center`} onPress={}>
-                                <Text className={`text-[#a538ff] text-xl p-3 rounded-lg`}>set sub</Text>
+                                <Text className={`text-main text-xl p-3 rounded-lg`}>set sub</Text>
                             </TouchableOpacity> */}
                         {(user?.strava?.expires_at && (user?.strava?.expires_at > (Date.now() / 1000))) && (
                             <View className='w-full items-center justify-center'>
@@ -226,7 +202,7 @@ const HomeScreen = () => {
                         <View className="w-full justify-center items-center">
                             <Text className='font-medium'>{user?.email}</Text>
                             <TouchableOpacity className="bg-white h-12 items-center justify-center" onPress={handleSignOut}>
-                                <Text className="text-[#a538ff] font-medium text-xl p-3 rounded-lg">Sign Out</Text>
+                                <Text className="text-main font-medium text-xl p-3 rounded-lg">Sign Out</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

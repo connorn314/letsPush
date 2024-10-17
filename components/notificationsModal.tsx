@@ -27,28 +27,30 @@ const NotificationsModal = ({ onClose }: { onClose: () => void }) => {
                             <Fontisto name="close-a" size={14} color="black" />
                         </TouchableOpacity>
 
-                    <View className='w-full flex-row justify-start px-4'>
-                        <Text className='font-medium text-xl '>What you missed</Text>
+                        <View className='w-full flex-row justify-start px-4'>
+                            <Text className='font-medium text-xl '>What you missed</Text>
+                        </View>
                     </View>
-                    </View>
-                    {!!myPushNotifications.length &&
-                        myPushNotifications
-                            .sort((a, b) => b.created_at.toDate().getTime() - a.created_at.toDate().getTime())
-                            .map(push => (
-                                <TouchableOpacity onPress={() => {
-                                    const goTo = push.content.data?.url
-                                    if (goTo) {
-                                        // console.log(goTo.slice(14))
-                                        onClose()
-                                        viewNotification(push.id);
-                                        setTimeout(() => router.push(`${goTo}` as Href<string>), 100)
-                                    }
-                                }} key={push.id} className={`${!push.viewed && "bg-blue-100"} w-full h-24 p-4 border-b-gray-200 border-b-[0.5px] flex-col justify-start `}>
-                                    <Text className='font-medium mb-2'>{push.content.title}</Text>
-                                    <Text className='mb-2'>{push.content.body}</Text>
-                                    <Text className='text-gray-400'>{push.created_at.toDate().toLocaleString()}</Text>
-                                </TouchableOpacity>
-                            ))}
+                <ScrollView className='w-screen'>
+                        {!!myPushNotifications.length &&
+                            myPushNotifications
+                                .sort((a, b) => b.created_at.toDate().getTime() - a.created_at.toDate().getTime())
+                                .map(push => (
+                                    <TouchableOpacity onPress={() => {
+                                        const goTo = push.content.data?.url
+                                        if (goTo) {
+                                            // console.log(goTo.slice(14))
+                                            onClose()
+                                            viewNotification(push.id);
+                                            setTimeout(() => router.push(`${goTo}` as Href<string>), 100)
+                                        }
+                                    }} key={push.id} className={`${!push.viewed && "bg-blue-100"} w-full h-24 p-4 border-b-gray-200 border-b-[0.5px] flex-col justify-start `}>
+                                        <Text className='font-medium mb-2'>{push.content.title}</Text>
+                                        <Text className='mb-2'>{push.content.body}</Text>
+                                        <Text className='text-gray-400'>{push.created_at.toDate().toLocaleString()}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                    </ScrollView>
                 </View>
             </SafeAreaView>
         </View>

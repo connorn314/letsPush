@@ -121,7 +121,7 @@ const WeeklyCommitmentsDisplay = ({
             }} className=" w-full rounded-2xl bg-white shadow-sm justify-center items-center p-4">
                 <View className='flex-row w-full justify-start items-center'>
                     {/* <View className={`rounded-full justify-center items-center h-16 w-16 ${commitment.status === "complete" ? "bg-green-300" : (commitment.status === "failure" ? "bg-red-400" : "bg-slate-200")}`}> */}
-                    <View className={`rounded-full justify-center items-center h-12 w-12 bg-[#a538ff]`}>
+                    <View className={`rounded-full justify-center items-center h-12 w-12 bg-main`}>
                         <Text className={`text-xl font-semibold text-center text-white `}>{(personal && user.name) ? user.name[0]?.toLocaleUpperCase()  : author?.name[0]?.toLocaleUpperCase() ?? "N"}</Text>
                     </View>
                     <View className="ml-2">
@@ -164,7 +164,7 @@ const WeeklyCommitmentsDisplay = ({
                             return (
                                 <View key={`${item.day}_${item.simpleString}`} className={` items-center justify-center`}>
                                     <View className="h-[160px] justify-end">
-                                        <AnimatedBar status={stat} actualHeight={actualHeights[index]} goalHeight={goalHeights[index]} delay={(700 + (index * 100))} />
+                                        <AnimatedBar status={stat} actualHeight={actualHeights[index]} goalHeight={goalHeights[index]} delay={(250 + (index * 100))} />
                                     </View>
                                     <View className={` text-center rounded-full items-center justify-center`}>
                                         <Text className={` p-4`}>{item.day}</Text>

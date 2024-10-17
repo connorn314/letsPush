@@ -345,6 +345,20 @@ exports.scheduledUpdateCommitmentsStatus = onSchedule("every 1 hours", async (ev
 
   // 7 is the offset in california, eventually it will be dynamic to all timezones
   const time = pacificTime.getUTCHours() >= 7 ? pacificTime.getUTCHours() - 7 : 24 - Math.abs(pacificTime.getUTCHours() - 7)
+  if (time === 23) {
+    const usersRef = db.collection('users');
+    logger.info("attempting usersWithRemindersSnaps query");
+    const usersWithRemindersSnaps = await usersRef.where('reminders_sent', ">", "[]").get();
+    const batchOne = db.batch();
+    usersWithRemindersSnaps.forEach(doc => {
+      const docRef = usersRef.doc(doc.id);
+      batchOne.update(docRef, { reminders_sent: [] });
+    });
+
+    await batchOne.commit();
+    logger.info("successfully cleared all reminders sent for users");
+    return;
+  }
   if (time !== 20) {
     logger.info('Current time is not 8 PM Pacific Time. Exiting the function.');
     return;
@@ -557,8 +571,8 @@ exports.sendReminderToFriend = onCall(async (request) => {
     const notif: ExpoPushMessage = {
       to: toUserSnap.data()?.pushToken,
       sound: 'default',
-      title: `Reminder from ${fromUserSnap.data()?.name}`,
-      body: `Fill out a your commitments for this week`,
+      title: request.data.notiMessage || `Reminder from ${fromUserSnap.data()?.name}`,
+      body: `${fromUserSnap.data()?.name} wants you to share your plan for this week`,
       badge: 1,
       data: { url: `(tabs)/commitments?showAddWorkout=true` }
     }

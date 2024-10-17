@@ -11,6 +11,7 @@ import SpinLoader from "@/components/spinLoader";
 import SignIn from "@/components/signUp";
 import DismissKeyboard from "@/components/dismissKeyboard";
 import { LinearGradient } from "expo-linear-gradient";
+import { Href, Link } from "expo-router";
 // import CustomBackdrop from "../components/CustomBackdrop";
 
 const Login = ({ navigation }: any) => {
@@ -24,17 +25,17 @@ const Login = ({ navigation }: any) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
-    const bottomSheetRef = useRef<BottomSheet>(null);
-    const [test, setTest] = useState(-1);
+    // const bottomSheetRef = useRef<BottomSheet>(null);
+    // const [test, setTest] = useState(-1);
 
-    const handleClosePress = () => {
-        setTest(-1)
-        bottomSheetRef?.current?.close()
-    }
-    const handleOpenPress = () => {
-        setTest(0)
-        bottomSheetRef?.current?.expand()
-    }
+    // const handleClosePress = () => {
+    //     setTest(-1)
+    //     bottomSheetRef?.current?.close()
+    // }
+    // const handleOpenPress = () => {
+    //     setTest(0)
+    //     bottomSheetRef?.current?.expand()
+    // }
 
     // const handleSignUp = async () => {
     //     try {
@@ -60,7 +61,7 @@ const Login = ({ navigation }: any) => {
     return (
         <LinearGradient
             // Background Linear Gradient
-            colors={['#f0f0f0', '#ffffff', '#f0f0f0']}
+            colors={['#ffffff', '#ffffff', '#ffffff']}
             end={{ x: 0.1, y: 0.1 }}
             start={{ x: 0.9, y: 1 }}
             style={{ height: "100%", width: "100%", alignItems: "center", justifyContent: "center", paddingHorizontal: 20 }}
@@ -71,8 +72,9 @@ const Login = ({ navigation }: any) => {
                         <View className="h-auto w-full flex justify-center items-center overflow-scroll">
                             <KeyboardAvoidingView behavior="padding" className=" w-full px-4 flex justify-center items-center">
                                 <View className=" w-full flex justify-center items-center">
-                                    <View className="mb-12">
-                                        <Text className=" text-[50px] font-black mb-6" style={{ fontFamily: "BenchNine_700Bold"}}>Ruñet</Text>
+                                    <View className="mb-12 h-14 relative  w-full ">
+                                        <Text className="top-0 text-center w-full absolute text-[50px] font-black mb-6 text-main" style={{ fontFamily: "BenchNine_700Bold"}}>Ruñet</Text>
+                                        <Text className="top-0 text-center w-full absolute text-[50px] font-black mb-6" style={{ fontFamily: "BenchNine_700Bold"}}>Runet</Text>
                                         {/* <Image source={appImage} className="w-screen h-20"
                                             style={{
                                                 borderBottomLeftRadius: 5,
@@ -90,7 +92,7 @@ const Login = ({ navigation }: any) => {
                                             <Text className="py-2">Email</Text>
                                             <TextInput
                                                 placeholder="Email"
-                                                className=" border border-gray-200 rounded-lg"
+                                                className=" border border-gray-200 bg-white rounded-lg"
                                                 style={{ paddingVertical: 16, paddingHorizontal: 16 }}
                                                 placeholderTextColor={"gray"}
                                                 value={email}
@@ -104,7 +106,7 @@ const Login = ({ navigation }: any) => {
                                             <Text className="py-2">Password</Text>
                                             <TextInput
                                                 placeholder="Password"
-                                                className="border border-gray-200  rounded-lg"
+                                                className="border border-gray-200 bg-white rounded-lg"
                                                 style={{ paddingVertical: 16, paddingHorizontal: 16 }}
                                                 value={password}
                                                 placeholderTextColor={"gray"}
@@ -117,7 +119,7 @@ const Login = ({ navigation }: any) => {
 
                                     </View>
                                     <View className="w-full">
-                                        <TouchableOpacity className="bg-[#a538ff] mb-6 w-full rounded-xl h-14 mt-4 justify-center items-center"
+                                        <TouchableOpacity className="bg-main mb-6 w-full rounded-xl h-14 mt-4 justify-center items-center"
                                             onPress={handleSignIn}  >
                                             {loading ? (
                                                 <SpinLoader />
@@ -138,9 +140,9 @@ const Login = ({ navigation }: any) => {
                                                 }} resizeMode={"contain"} />
 
                                         </View>
-                                        {/* <TouchableOpacity className=" mb-6 shadow-md border-rounded-full border-2 border-[#a538ff] w-full rounded-full py-4 mt-1 justify-center items-center"
+                                        {/* <TouchableOpacity className=" mb-6 shadow-md border-rounded-full border-2 border-main w-full rounded-full py-4 mt-1 justify-center items-center"
                                             onPress={handleSignUp}  >
-                                            <Text className="text-xl text-[#a538ff] font-semibold">Register</Text>
+                                            <Text className="text-xl text-main font-semibold">Register</Text>
                                         </TouchableOpacity> */}
                                     </View>
                                 </View>
@@ -194,35 +196,15 @@ const Login = ({ navigation }: any) => {
 
                         {/* Create Account */}
                         <View className="flex flex-row justify-center items-center">
-                            <Text className="text-gray-500">Need an Account?</Text>
-                            <TouchableOpacity className="underline" onPress={handleOpenPress}>
-                                <Text className="underline ml-1">Sign Up</Text>
+                            <Text className="text-gray-500">Need an Account? </Text>
+                            <TouchableOpacity className="underline" >
+                                <Link href={"/signupModal" as Href}>
+                                    <Text className="underline ml-1">Sign Up</Text>
+                                </Link>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </DismissKeyboard>
-                <BottomSheet
-                    ref={bottomSheetRef}
-                    index={test} // If the index value is set to -1, the sheet will initialize in a closed state.
-                    detached={false} // Determines if the bottom sheet is attached to the bottom or not.
-                    snapPoints={["90%"]}
-                    enablePanDownToClose
-                    // backgroundStyle={{}}
-                    // backdropComponent={(props: BottomSheetBackdropProps) => (
-                    //     <BottomSheetBackdrop {...props} style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} enableTouchThrough={true} />
-                    // )}
-                    backdropComponent={props => (<BottomSheetBackdrop {...props}
-                        opacity={0.5}
-                        enableTouchThrough={false}
-                        appearsOnIndex={0}
-                        disappearsOnIndex={-1}
-                        style={[{ backgroundColor: 'rgba(0, 0, 0, 1)' }, StyleSheet.absoluteFillObject]} />)}
-                    onChange={(index) => {
-                        if (index === -1) { Keyboard.dismiss() }
-                    }}
-                >
-                    <SignIn onClose={() => handleClosePress()} />
-                </BottomSheet>
             </SafeAreaView>
 
         </LinearGradient>
