@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, ScrollView } from "react-native"
+import { Text, View, TouchableOpacity, ScrollView, Image } from "react-native"
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -8,7 +8,7 @@ import { User } from "@/types/user";
 import { myFriends } from "@/storage/atomStorage";
 import { useAtom } from "jotai";
 import { useEffect } from "react";
-import { query, where,collection, onSnapshot } from "firebase/firestore";
+import { query, where, collection, onSnapshot } from "firebase/firestore";
 import { FIRESTORE_DB } from "@/firebaseConfig";
 import { Workout } from "@/types/workouts";
 import CommitmentCard from "@/components/commitmentCard";
@@ -24,7 +24,7 @@ const ProfilePage = () => {
     const [commitments, setCommitments] = useState<Workout[] | null>(null);
 
     useEffect(() => {
-        if (userId){
+        if (userId) {
             const q = query(
                 collection(FIRESTORE_DB, 'commitments'),
                 where('userId', '==', userId)
@@ -41,7 +41,7 @@ const ProfilePage = () => {
                     setCommitments(workoutsArr as Workout[])
                 }
             })
-    
+
             return () => subscriber();
         }
     }, [])
@@ -66,9 +66,21 @@ const ProfilePage = () => {
                                 <View className=" h-1/3" />
                                 <View className=" h-3/4 w-screen justify-start items-center">
 
-                                    <View className={`rounded-full -mt-16 border-white border-4 justify-center items-center h-32 w-32 bg-orange-500`}>
-                                        <Text className={`text-4xl font-semibold text-center text-white `}>{`${profile?.name[0]?.toLocaleUpperCase() ?? "N"}`}</Text>
-                                    </View>
+                                    {profile?.profile_image_url ? (
+                                        <View className={`rounded-full -mt-16 border-white border-4 justify-center items-center h-32 w-32 overflow-hidden`}>
+                                            <Image source={{uri: profile.profile_image_url}} className="w-32 h-32"
+                                                style={{
+                                                    borderBottomLeftRadius: 5,
+                                                    borderBottomRightRadius: 5,
+                                                    borderTopLeftRadius: 5,
+                                                    borderTopRightRadius: 5,
+                                                }} resizeMode={"cover"} />
+                                        </View>
+                                    ) : (
+                                        <View className={`rounded-full -mt-16 border-white border-4 justify-center items-center h-32 w-32 bg-orange-500`}>
+                                            <Text className={`text-4xl font-semibold text-center text-white `}>{`${profile?.name[0]?.toLocaleUpperCase() ?? "N"}`}</Text>
+                                        </View>
+                                    )}
                                     <View className="">
                                         <Text className="w-fit text-2xl font-medium">{profile?.name}</Text>
                                     </View>

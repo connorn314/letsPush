@@ -12,6 +12,11 @@ export interface MyPushNotification {
         title: string;
         to: string;
     },
+    friend_request?: {
+        is_request: boolean,
+        from: string,
+        is_answered: boolean
+    },
     created_at: Timestamp;
     userId: string;
     viewed: boolean;

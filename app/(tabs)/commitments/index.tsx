@@ -114,6 +114,15 @@ const WorkoutsPage = () => {
                         {currFilter === "Week" && (
                             <ScrollView className="h-full w-full" >
                                 <Text className="font-medium text-xl px-4 pt-4">This Week's Progress</Text>
+                                {!thisWeekPlan && (
+                                    <View className='w-full h-80 justify-center items-center'>
+                                        <Text className='font-medium mb-4'>Let's set your plan first</Text>
+                                        <TouchableOpacity className='bg-main py-4 pr-6 pl-4 rounded-lg flex-row justify-center items-center' onPress={() => handlePresentModalPress()} >
+                                            <Entypo name="plus" size={16} color="white" />
+                                            <Text className='text-white font-medium ml-1'>Plan</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
                                 {thisWeekPlan && (
                                     <WeeklyCommitmentsDisplay weekPlanData={thisWeekPlan} personal />
                                 )}
@@ -163,6 +172,16 @@ const WorkoutsPage = () => {
                                         const [year, month, day] = plan.end.split("/");
                                         const today = new Date();
                                         return new Date(Number(year), Number(month) - 1, Number(day)) < today
+                                    }).length === 0 && (
+                                    <View className='w-full h-80 justify-center items-center'>
+                                        <Text className='font-medium mb-4'>No history yet!</Text>
+                                    </View>
+                                )}
+                                {weekPlans
+                                    .filter(plan => {
+                                        const [year, month, day] = plan.end.split("/");
+                                        const today = new Date();
+                                        return new Date(Number(year), Number(month) - 1, Number(day)) < today
                                     })
                                     .sort((a, b) => {
                                         const [yearA, monthA, dayA] = a.start.split("/")
@@ -177,20 +196,20 @@ const WorkoutsPage = () => {
 
                         {currFilter === "Future" && (
                             <ScrollView className="h-full w-full" >
-                                {/* <View className=" flex-row justify-evenly items-center w-full px-4 mt-6">
-                                    <View className="flex-row items-center">
-                                        <FontAwesome5 name="running" size={28} color="black" />
-                                        <Text className="w-fit text-3xl font-medium ml-2">{workouts?.filter(c => c.startDate.toDate() > new Date() && c.status === "complete").length}</Text>
+                                {weekPlans
+                                    .filter(plan => {
+                                        const [year, month, day] = plan.start.split("/");
+                                        const today = new Date();
+                                        return new Date(Number(year), Number(month) - 1, Number(day)) > today
+                                    }).length === 0 && (
+                                    <View className='w-full h-80 justify-center items-center'>
+                                        <Text className='font-medium mb-4'>No plans set, get ahead of it</Text>
+                                        <TouchableOpacity className='bg-main py-4 pr-6 pl-4 rounded-lg flex-row justify-center items-center' onPress={() => handlePresentModalPress()} >
+                                            <Entypo name="plus" size={16} color="white" />
+                                            <Text className='text-white font-medium ml-1'>Plan</Text>
+                                        </TouchableOpacity>
                                     </View>
-                                    <View className="flex-row items-center">
-                                        <MaterialCommunityIcons name="emoticon-sick-outline" size={28} color="black" />
-                                        <Text className="w-fit text-3xl font-medium ml-2">{workouts?.filter(c => c.startDate.toDate() > new Date() && c.status === "failure").length}</Text>
-                                    </View>
-                                    <View className="flex-row items-center">
-                                        <FontAwesome name="clock-o" size={28} color="black" />
-                                        <Text className="w-fit text-3xl font-medium ml-2">{workouts?.filter(c => c.startDate.toDate() > new Date() && c.status === "NA").length}</Text>
-                                    </View>
-                                </View> */}
+                                )}
                                 {weekPlans
                                     .filter(plan => {
                                         const [year, month, day] = plan.start.split("/");

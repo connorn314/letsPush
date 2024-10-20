@@ -1,4 +1,4 @@
-import { View, Text, KeyboardAvoidingView, TextInput, Image, TouchableOpacity } from "react-native";
+import { View, Text, KeyboardAvoidingView, TextInput, Keyboard, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
 
 import { FIREBASE_AUTH, FIRESTORE_DB } from "../firebaseConfig";
@@ -10,7 +10,7 @@ import { createUserWithEmailAndPassword, User } from "firebase/auth";
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import SpinLoader from "./spinLoader";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { expoPushTokenState, userState } from "@/storage/atomStorage";
+import { expoPushTokenState, signingUpState, userState } from "@/storage/atomStorage";
 import { useAtom } from "jotai";
 import { Href, Link, useRouter } from "expo-router";
 import TimezoneSelector from "./timezoneSelector";
@@ -18,21 +18,15 @@ import DismissKeyboard from "./dismissKeyboard";
 
 const SignIn = ({ onClose }: { onClose?: () => void }) => {
 
-    // const appImage = require('../../assets/images/icon.png');
-    // const [user, setUser] = useAtom(userState);
-    // const appImage = require('@/assets/images/besvarra_long_horiz.png');
-    // const stravaImage = require('@/assets/images/api_logo_pwrdBy_strava_stack_light.png');
-
-
     const router = useRouter();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
     const [selectedTimezone, setSelectedTimezone] = useState<any | null>(null);
-    const [loading, setLoading] = useState(false);
     const [expoToken,] = useAtom(expoPushTokenState);
     const [, setUser] = useAtom(userState);
+    const [isSigningUp, setIsSigningUp] = useAtom(signingUpState);
 
     // useEffect(() => {
     // const tz = TimeZone.getTimeZone()
@@ -42,16 +36,18 @@ const SignIn = ({ onClose }: { onClose?: () => void }) => {
 
 
     const handleSignUp = async () => {
-        setLoading(true);
+        setIsSigningUp(true);
+        Keyboard.dismiss()
         try {
             const { user: userObj } = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
             const newUser = (await createUser(userObj)).data
             setUser({ ...userObj, id: userObj.uid, ...newUser })
-            router.push("/(tabs)/home")
+            // router.dismiss()
+            // router.push("/(tabs)/home")
         } catch (err: any) {
             alert(err.message);
         } finally {
-            setLoading(false);
+            setIsSigningUp(false);
         }
     }
 
@@ -62,13 +58,19 @@ const SignIn = ({ onClose }: { onClose?: () => void }) => {
             friends: [],
             pushToken: expoToken || "",
             workouts: [],
-            weekPlans: []
+            weekPlans: [],
+            friend_requests_recieved: [],
+            friend_requests_extended: [],
+            onboarding_incomplete: true,
         }
         // console.log("userData", userData)
         await setDoc(doc(FIRESTORE_DB, "users", userObj.uid), userData);
+        const nameSegments = name.split(" ");
         await setDoc(doc(FIRESTORE_DB, "searchable_users", userObj.uid), {
             name,
-            email: userObj.email
+            email: userObj.email,
+            lower_first: nameSegments[0].toLocaleLowerCase(),
+            lower_last: nameSegments[nameSegments.length - 1].toLocaleLowerCase()
         });
         return await getDoc(doc(FIRESTORE_DB, "users", userObj.uid));
     }
@@ -91,6 +93,7 @@ const SignIn = ({ onClose }: { onClose?: () => void }) => {
                                 <View className="w-full relative ">
                                     <Text className="py-2">Name</Text>
                                     <TextInput
+                                        autoCapitalize="words"
                                         placeholder="Name"
                                         className=" border border-gray-200 bg-white rounded-lg"
                                         style={{ paddingVertical: 16, paddingHorizontal: 16 }}
@@ -103,6 +106,7 @@ const SignIn = ({ onClose }: { onClose?: () => void }) => {
                                 <View className="w-full relative ">
                                     <Text className="py-2">Email</Text>
                                     <TextInput
+                                        autoCapitalize="none"
                                         placeholder="Email"
                                         className=" border border-gray-200 bg-white rounded-lg"
                                         style={{ paddingVertical: 16, paddingHorizontal: 16 }}
@@ -126,7 +130,7 @@ const SignIn = ({ onClose }: { onClose?: () => void }) => {
                             <View className="w-full">
                                 <TouchableOpacity className="bg-main mb-6 w-full rounded-xl h-14 mt-4 justify-center items-center"
                                     onPress={handleSignUp}  >
-                                    {loading ? (
+                                    {isSigningUp ? (
                                         <SpinLoader />
                                     ) : (
                                         <Text className="text text-white font-medium">Sign up</Text>

@@ -612,3 +612,200 @@ exports.sendReminderToFriend = onCall(async (request) => {
     logger.error('Error sending reminder:', err);
   }
 })
+
+exports.sendFriendRequest = onCall(async (request) => {
+  const handlePushReceiptError = async ({ expoPushToken, error }: { expoPushToken?: string; error?: "DeveloperError" | "DeviceNotRegistered" | "ExpoError" | "InvalidCredentials" | "MessageRateExceeded" | "MessageTooBig" | "ProviderError" }) => {
+    if (!error) return;
+    if (error === "DeviceNotRegistered") {
+      logger.error("attempting to send push notification to device no longer registered")
+      if (!expoPushToken) return;
+      const usersWithTokenSnaps = await db.collection("users").where("pushToken", "==", expoPushToken).get();
+      if (usersWithTokenSnaps.empty) return;
+      // shouldn't be more than one but just in case;
+      // eventually this should be a concurrent operation;
+      usersWithTokenSnaps.docs.forEach(userWithToken => {
+        userWithToken.ref.update({
+          pushToken: admin.firestore.FieldValue.delete()
+        })
+      })
+      return;
+    }
+    logger.error(`We had a push error that wasn't a device registered issue: ${error}`)
+  }
+
+  if (!request.data.to) {
+    throw new HttpsError("invalid-argument", "The function must be called with a 'to' argument");
+  }
+  if (!request.auth) {
+    throw new HttpsError("failed-precondition", "The function must be " +
+      "called while authenticated.");
+  }
+  const fromUserSnap = await db.doc(`/users/${request.auth.uid}`).get();
+  const toUserSnap = await db.doc(`/users/${request.data.to}`).get();
+
+  if (!toUserSnap.exists){
+    throw new HttpsError("failed-precondition", "The user requested does not exist");
+  }
+
+  const pushNotificationsRef = db.collection("push_notifications");
+
+  try {
+    const notif: ExpoPushMessage = {
+      to: toUserSnap.data()?.pushToken,
+      sound: 'default',
+      title: `New Friend Request`,
+      body: `${fromUserSnap.data()?.name} would like to be friends`,
+      badge: 1,
+      data: { url: `(tabs)/home?showNotifications=true` }
+    }
+    await pushNotificationsRef.doc().set({
+      content: notif,
+      userId: toUserSnap.id,
+      friend_request: {
+        is_request: true,
+        from: fromUserSnap.id,
+        is_answered: false
+      },
+      created_at: admin.firestore.FieldValue.serverTimestamp(),
+      viewed: false
+    }); 
+
+    await fromUserSnap.ref.update({
+      friend_requests_extended: fromUserSnap.data()?.friend_requests_extended ? (fromUserSnap.data()?.friend_requests_extended as string[]).concat([toUserSnap.id]) : [toUserSnap.id]
+    })
+
+    await toUserSnap.ref.update({
+      friend_requests_recieved: toUserSnap.data()?.friend_requests_pending ? (toUserSnap.data()?.friend_requests_pending as string[]).concat([fromUserSnap.id]) : [fromUserSnap.id]
+    })
+
+    if (toUserSnap.data()?.pushToken && Expo.isExpoPushToken(toUserSnap.data()?.pushToken)) {
+      const tickets = await expo.sendPushNotificationsAsync([notif])
+      if (tickets[0].status !== 'ok') {
+        logger.warn(tickets[0].message)
+      }
+    
+      const receipts = await expo.getPushNotificationReceiptsAsync(tickets.map(ticket => (ticket as ExpoPushSuccessTicket).id));
+      for (let receiptId in receipts) {
+        const { status } = receipts[receiptId];
+        if (status === 'ok') {
+          continue;
+        } else if (status === 'error') {
+          const { message, details, expoPushToken } = receipts[receiptId] as ExpoPushErrorReceipt;
+          logger.error(
+            `There was an error sending a notification: ${message}`
+          );
+          if (details && details.error) { handlePushReceiptError({ expoPushToken, error: details.error }) }
+        }
+      }
+    }
+  } catch (err) {
+    logger.error('Error sending friend request:', err);
+  }
+})
+
+exports.respondToFriendRequest = onCall(async (request) => {
+  const handlePushReceiptError = async ({ expoPushToken, error }: { expoPushToken?: string; error?: "DeveloperError" | "DeviceNotRegistered" | "ExpoError" | "InvalidCredentials" | "MessageRateExceeded" | "MessageTooBig" | "ProviderError" }) => {
+    if (!error) return;
+    if (error === "DeviceNotRegistered") {
+      logger.error("attempting to send push notification to device no longer registered")
+      if (!expoPushToken) return;
+      const usersWithTokenSnaps = await db.collection("users").where("pushToken", "==", expoPushToken).get();
+      if (usersWithTokenSnaps.empty) return;
+      // shouldn't be more than one but just in case;
+      // eventually this should be a concurrent operation;
+      usersWithTokenSnaps.docs.forEach(userWithToken => {
+        userWithToken.ref.update({
+          pushToken: admin.firestore.FieldValue.delete()
+        })
+      })
+      return;
+    }
+    logger.error(`We had a push error that wasn't a device registered issue: ${error}`)
+  }
+  const {to, accept, pushId} = request.data
+
+  if (!to || (accept === undefined) || !pushId) {
+    throw new HttpsError("invalid-argument", "Missing arguments");
+  }
+  if (!request.auth) {
+    throw new HttpsError("failed-precondition", "The function must be " +
+      "called while authenticated.");
+  }
+  const fromUserSnap = await db.doc(`/users/${request.auth.uid}`).get();
+  const toUserSnap = await db.doc(`/users/${to}`).get();
+
+  if (!toUserSnap.exists){
+    throw new HttpsError("failed-precondition", "The user requested does not exist");
+  }
+
+  if (!toUserSnap.data()?.friend_requests_extended || !toUserSnap.data()?.friend_requests_extended.includes(request.auth.uid)){
+    throw new HttpsError("failed-precondition", "We have no record that the user was sent this friend request in the first place");
+  }
+
+  const pushNotificationsRef = db.collection("push_notifications");
+
+  try {
+    const notif: ExpoPushMessage = {
+      to: toUserSnap.data()?.pushToken,
+      sound: 'default',
+      title: `Friend Request ${accept ? "Accepted" : "Denied"}`,
+      body: `${fromUserSnap.data()?.name} ${accept ? "accepted" : "denied"} your friend request`,
+      badge: 1,
+      data: { url: `(tabs)/home?showNotifications=true` }
+    }
+    await pushNotificationsRef.doc().set({
+      content: notif,
+      userId: toUserSnap.id,
+      // friend_request: {
+      //   is_request: true,
+      //   from: fromUserSnap.id,
+      //   is_answered: false
+      // },
+      created_at: admin.firestore.FieldValue.serverTimestamp(),
+      viewed: false
+    }); 
+
+    
+    // await db.doc(`/push_notifications/${pushId}`).update({
+    //   friend_request: {
+    //       is_request: true,
+    //       from: fromUserSnap.id,
+    //       is_answered: true,
+    //       updated_at: admin.firestore.FieldValue.serverTimestamp()
+    //     },
+    // })
+
+    await fromUserSnap.ref.update({
+      friend_requests_recieved: (fromUserSnap.data()?.friend_requests_pending ?? []).filter((userId: string) => userId !== toUserSnap.id),
+      friends: accept ? (fromUserSnap.data()?.friends ?? []).concat([toUserSnap.id]) : (fromUserSnap.data()?.friends ?? [])
+    })
+
+    await toUserSnap.ref.update({
+      friend_requests_extended: (toUserSnap.data()?.friend_requests_pending ?? []).filter((userId: string) => userId !== fromUserSnap.id),
+      friends: accept ? (toUserSnap.data()?.friends ?? []).concat([fromUserSnap.id]) : (toUserSnap.data()?.friends ?? [])
+    })
+
+    if (toUserSnap.data()?.pushToken && Expo.isExpoPushToken(toUserSnap.data()?.pushToken)) {
+      const tickets = await expo.sendPushNotificationsAsync([notif])
+      if (tickets[0].status !== 'ok') {
+        logger.warn(tickets[0].message)
+      }
+    
+      const receipts = await expo.getPushNotificationReceiptsAsync(tickets.map(ticket => (ticket as ExpoPushSuccessTicket).id));
+      for (let receiptId in receipts) {
+        const { status } = receipts[receiptId];
+        if (status === 'ok') {
+          continue;
+        } else if (status === 'error') {
+          const { message, details, expoPushToken } = receipts[receiptId] as ExpoPushErrorReceipt;
+          logger.error(
+            `There was an error sending a notification: ${message}`
+          );
+          if (details && details.error) { handlePushReceiptError({ expoPushToken, error: details.error }) }
+        }
+      }
+    }
+  } catch (err) {
+    logger.error('Error sending friend request:', err);
+  }
+})

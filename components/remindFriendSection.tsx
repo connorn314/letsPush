@@ -4,10 +4,10 @@ import { useAtom } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Keyboard } from 'react-native';
 import SpinLoader from '@/components/spinLoader';
-import { getFunctions, httpsCallable } from 'firebase/functions';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
 import DismissKeyboard from "./dismissKeyboard";
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 const functions = getFunctions();
 const sendReminderToFriend = httpsCallable(functions, 'sendReminderToFriend');

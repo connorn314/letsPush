@@ -21,7 +21,7 @@ export const usePushNotifications = (): PushNotificationState => {
   });
 
   const router = useRouter();
-  
+
   const [user,] = useAtom(userState);
   const [expoPushToken, setExpoPushToken] = useAtom(expoPushTokenState);
   const [notification, setNotification] = useAtom(notificationState);
@@ -34,7 +34,7 @@ export const usePushNotifications = (): PushNotificationState => {
     alert(errorMessage);
     throw new Error(errorMessage);
   }
-  
+
   async function registerForPushNotificationsAsync() {
     if (Platform.OS === 'android') {
       Notifications.setNotificationChannelAsync('default', {
@@ -44,7 +44,7 @@ export const usePushNotifications = (): PushNotificationState => {
         lightColor: '#FF231F7C',
       });
     }
-  
+
     if (Device.isDevice) {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
@@ -78,6 +78,15 @@ export const usePushNotifications = (): PushNotificationState => {
     }
   }
 
+  const makeEnablePushRequest = async () => {
+    try {
+      const token = await registerForPushNotificationsAsync();
+      setExpoPushToken(token ?? '')
+    } catch (err) {
+      setExpoPushToken(`${err}`)
+    }
+  }
+
 
   useEffect(() => {
     registerForPushNotificationsAsync()
@@ -95,7 +104,7 @@ export const usePushNotifications = (): PushNotificationState => {
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       if (response.notification.request.content?.data?.url) {
-        router.push(response.notification.request.content.data.url)
+        setTimeout(() => router.push(response.notification.request.content.data.url), 500)
       }
     });
 
@@ -111,26 +120,27 @@ export const usePushNotifications = (): PushNotificationState => {
     if (!user) return;
 
     const q = query(
-        collection(FIRESTORE_DB, 'push_notifications'),
-        where('userId', '==', user.id),
-        limit(50)
+      collection(FIRESTORE_DB, 'push_notifications'),
+      where('userId', '==', user.id),
+      limit(50)
     );
 
     const subscriber = onSnapshot(q, {
-        next: (snapshot) => {
-            const myPushes: any[] = [];
-            snapshot.docs.forEach(doc => {
-                myPushes.push({ id: doc.id, ...doc.data() })
-            })
-            setMyPushNotifications(myPushes)
-        }
+      next: (snapshot) => {
+        const myPushes: any[] = [];
+        snapshot.docs.forEach(doc => {
+          myPushes.push({ id: doc.id, ...doc.data() })
+        })
+        setMyPushNotifications(myPushes)
+      }
     })
 
     return () => subscriber();
-}, [user])
+  }, [user])
 
   return {
     expoPushToken,
-    notification
+    notification,
+    makeEnablePushRequest
   }
 }

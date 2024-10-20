@@ -74,7 +74,7 @@ const useFriendsCommitments = () => {
         );
         const subscriber = onSnapshot(q, {
             next: (snapshot) => {
-                console.log("snapshot", snapshot.empty)
+                // console.log("snapshot", snapshot.empty)
                 const commitmentsArr: any[] = [];
                 snapshot.docs.forEach(doc => {
                     commitmentsArr.push({ id: doc.id, ...doc.data() })

@@ -1,12 +1,12 @@
 
-import { Stack, Redirect, useRouter, usePathname } from "expo-router";
+import { Stack, Redirect, useRouter, usePathname, Href } from "expo-router";
 import { createStore, Provider, useAtom } from 'jotai';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NativeWindStyleSheet } from "nativewind";
 import { usePushNotifications } from "@/storage/usePushNotifications";
-import { expoPushTokenState, firebaseAuthLoadingState, notificationState, userState } from "@/storage/atomStorage";
+import { expoPushTokenState, firebaseAuthLoadingState, signingUpState, userState } from "@/storage/atomStorage";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
@@ -66,21 +66,23 @@ const RootLayoutNav = () => {
     const [user, setUser] = useAtom(userState);
     const [expoToken,] = useAtom(expoPushTokenState);
     const [loading, setLoading] = useAtom(firebaseAuthLoadingState);
+    const [isSigninUp, ] = useAtom(signingUpState);
+
     const router = useRouter();
     const path = usePathname();
-    const [notification,] = useAtom(notificationState);
+    // const [notification,] = useAtom(notificationState);
     const { createSessionFromUrl } = useAuth();
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, userObj => {
-            if (userObj) {
+            if (userObj && !isSigninUp) {
                 getMe(userObj);
                 // .then(res => {
                 //     // console.log(res); 
                 //     router.push("/(tabs)/home")
                 // });
             } else {
-                setUser(null);
+                setUser(undefined);
                 setLoading(false);
             }
         })
@@ -128,17 +130,19 @@ const RootLayoutNav = () => {
     }
 
     useEffect(() => {
-        if (!loading && !user && (!path.includes("onboarding") || !path.includes("login"))) {
-            // router.push("/login")
-            router.push("/onboarding")
-        } else if (user && (path.includes("onboarding") || path.includes("login"))) {
-            router.push("/(tabs)/home")
+        if (!loading && !user && !(path.includes("signupModal") || path.includes("login") || path.includes("welcome"))) {
+            router.push("/welcome" as Href<string>)
+        } else if (user && (path.includes("login") || path.includes("welcome"))) {
+            router.push(user.onboarding_incomplete ? "/onboarding" : "/(tabs)/home")
+        } else if (user && (path.includes("signupModal"))){
+            router.dismiss()
+            router.push(user.onboarding_incomplete ? "/onboarding" : "/(tabs)/home")
         }
-    }, [user])
+    }, [user, path])
 
     useEffect(() => {
         const handleDeepLink = (event: any) => {
-            console.log(event)
+            // console.log(event)
             const { url } = event;
             console.log("Deep link received:", url);
 
@@ -168,11 +172,13 @@ const RootLayoutNav = () => {
             <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: "fade", gestureEnabled: false }}  />
             <Stack.Screen name="commitment/[commitmentId]" options={{ headerShown: false }} />
             <Stack.Screen name="profile/[userId]" options={{ headerShown: false }} />
+            <Stack.Screen name="welcome" options={{ headerShown: false, animation: "fade", gestureEnabled: false }} />
             <Stack.Screen name="login" options={{ headerShown: false, gestureEnabled: false }} />
             <Stack.Screen name="signupModal" options={{ presentation: 'modal', headerShown: false }}/>
-            <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false, animation: "fade", gestureEnabled: false }} />
             <Stack.Screen name="weekOfCommitments/[weekPlanId]" options={{ headerShown: false }} />
-            <Stack.Screen name="bevvarra.com" options={{ headerBackTitle: "Home", title: "Strava Status" }} />
+            <Stack.Screen name="bevvarra.com" options={{ presentation: 'modal', headerShown: false }} />
+            <Stack.Screen name="index" options={{ headerShown: false, animation: "fade", gestureEnabled: false }}  />
         </Stack>
     )
 }

@@ -20,7 +20,7 @@ export const parsePace = (str: string) => {
     return { minutes, seconds }
 }
 
-export const generateTotalTime = (paceString:string, distance: number) => {
+export const generateTotalTime = (paceString: string, distance: number) => {
     const { minutes, seconds } = parsePace(paceString);
     const secondsPerMile = seconds + (minutes * 60)
     return distance * secondsPerMile
@@ -94,17 +94,40 @@ export const dayToSimpleString = (date: Date) => {
 export const getSundayOfWeek = (date: Date): string => {
     // Get the day of the week (0 for Sunday, 1 for Monday, etc.)
     const dayOfWeek = date.getDay();
-    
+
     // Calculate the difference to the previous Sunday
     const diffToSunday = date.getDate() - dayOfWeek;
-    
+
     // Create a new date for the Sunday of that week
     const sundayDate = new Date(date.setDate(diffToSunday));
-    
+
     // Format the date as YYYY/M/D
     const year = sundayDate.getFullYear();
     const month = sundayDate.getMonth() + 1; // Months are 0-indexed
     const day = sundayDate.getDate();
-    
+
     return `${year}/${month}/${day}`;
-  }
+}
+
+export const timeAgoString = (date: Date) => {
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(seconds / 3600);
+    const days = Math.floor(seconds / 86400);
+    const weeks = Math.floor(seconds / 604800);
+    
+    if (seconds < 60) {
+        return seconds === 1 ? "1s ago" : `${seconds}s ago`;
+    } else if (minutes < 60) {
+        return minutes === 1 ? "1m ago" : `${minutes}m ago`;
+    } else if (hours < 24) {
+        return hours === 1 ? "1hr ago" : `${hours}hr ago`;
+    } else if (days < 7) {
+        return days === 1 ? "yesterday" : `${days}d ago`;
+    } else if (weeks < 4) {
+        return weeks === 1 ? "last week" : `${weeks}w ago`;
+    } else {
+        return `${Math.floor(weeks / 4)}mo ago`;
+    }
+}

@@ -11,7 +11,7 @@ import SpinLoader from "@/components/spinLoader";
 import SignIn from "@/components/signUp";
 import DismissKeyboard from "@/components/dismissKeyboard";
 import { LinearGradient } from "expo-linear-gradient";
-import { Href, Link } from "expo-router";
+import { Href, Link, useRouter } from "expo-router";
 // import CustomBackdrop from "../components/CustomBackdrop";
 
 const Login = ({ navigation }: any) => {
@@ -19,6 +19,8 @@ const Login = ({ navigation }: any) => {
 
     const appImage = require('@/assets/images/besvarra_long_horiz.png');
     const stravaImage = require('@/assets/images/api_logo_pwrdBy_strava_stack_gray.png');
+
+    const router = useRouter();
     // const [user, setUser] = useAtom(userState);
     // const [withPassword, setWithPassword] = useState(false);
 
@@ -48,12 +50,14 @@ const Login = ({ navigation }: any) => {
 
     const handleSignIn = async () => {
         setLoading(true)
+        Keyboard.dismiss()
         try {
             await signInWithEmailAndPassword(FIREBASE_AUTH, email, password)
+            // router.push("/(tabs)/home");
         } catch (err: any) {
             alert(err.message)
         } finally {
-            setLoading(false)
+            setTimeout(() => setLoading(false), 300)
         }
     }
 
@@ -91,6 +95,7 @@ const Login = ({ navigation }: any) => {
                                         <View className="w-full relative ">
                                             <Text className="py-2">Email</Text>
                                             <TextInput
+                                                autoCapitalize="none"
                                                 placeholder="Email"
                                                 className=" border border-gray-200 bg-white rounded-lg"
                                                 style={{ paddingVertical: 16, paddingHorizontal: 16 }}

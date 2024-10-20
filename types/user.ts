@@ -10,4 +10,5 @@ export interface User {
     workouts: Workout[];
     workoutPlans: WeekOfCommitments[];
     reminders_sent?: string[];
+    profile_image_url?: string;
 }
