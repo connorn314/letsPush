@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
-import { myFriends, userState } from "@/storage/atomStorage";
+import { myFriends, tourGuideState, userState } from "@/storage/atomStorage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DismissKeyboard from "@/components/dismissKeyboard";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,6 +14,7 @@ import SpinLoader from "@/components/spinLoader";
 import Fontisto from '@expo/vector-icons/Fontisto';
 import { debounce } from "lodash";
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import FriendsTourGuideView from "@/components/friendsTourGuide";
 
 const functions = getFunctions();
 const sendFriendRequest = httpsCallable(functions, 'sendFriendRequest');
@@ -22,6 +23,8 @@ const FriendsPage = () => {
 
     const [user, setUser] = useAtom(userState);
     const [friends,] = useAtom(myFriends);
+    const [tourGuide, ] = useAtom(tourGuideState);
+
     const router = useRouter();
 
     const [searchInput, setSearchInput] = useState("");
@@ -114,6 +117,7 @@ const FriendsPage = () => {
             start={{ x: 0.9, y: 1 }}
             style={{ height: "100%", width: "100%", alignItems: "center", justifyContent: "center", paddingHorizontal: 20 }}
         >
+            {tourGuide && <FriendsTourGuideView />}
             <SafeAreaView className={` transition-all duration-200 relative`}>
                 <DismissKeyboard>
                     <View className='w-screen h-full justify-start items-center'>

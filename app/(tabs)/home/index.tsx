@@ -9,7 +9,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Svg, { G, Rect, Path } from "react-native-svg"
-import { stravaAuthLoadingState, userState, friendWeekPlansState, myFriends, friendCommitmentsLoadingState, friendWeekPlansLoadingState, hasBadgeNotificationsState, expandFriendReminderSection } from '@/storage/atomStorage';
+import { stravaAuthLoadingState, userState, friendWeekPlansState, myFriends, friendCommitmentsLoadingState, friendWeekPlansLoadingState, hasBadgeNotificationsState, expandFriendReminderSection, tourGuideState } from '@/storage/atomStorage';
 import useAuth from '@/storage/useAuth';
 import { FIREBASE_AUTH } from '@/firebaseConfig';
 import WeeklyCalendarDisplay from '@/components/weeklyDisplay';
@@ -22,6 +22,7 @@ import * as Notifications from 'expo-notifications';
 import RemindFriendSection from '@/components/remindFriendSection';
 import { useRouter } from 'expo-router';
 import Entypo from '@expo/vector-icons/Entypo';
+import HomeTourGuideView from '@/components/homeTourGuide';
 
 const HomeScreen = () => {
 
@@ -29,13 +30,14 @@ const HomeScreen = () => {
 
     const router = useRouter();
 
-    const [user, ] = useAtom(userState);
+    const [user,] = useAtom(userState);
     const [friends,] = useAtom(myFriends);
     const [friendWeekPlans,] = useAtom(friendWeekPlansState);
     const [stravaAuthLoading,] = useAtom(stravaAuthLoadingState);
     const [friendCommitmentsLoading] = useAtom(friendCommitmentsLoadingState);
     const [friendWeekPlansLoading] = useAtom(friendWeekPlansLoadingState);
     const [hasBadgeNotifications, setHasBadgeNotifications] = useAtom(hasBadgeNotificationsState);
+    const [tourGuide, setTourGuide] = useAtom(tourGuideState);
 
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const notificationModalRef = useRef<BottomSheetModal>(null);
@@ -96,7 +98,9 @@ const HomeScreen = () => {
             start={{ x: 0.9, y: 1 }}
             style={{ height: "100%", width: "100%", alignItems: "center", justifyContent: "center", paddingHorizontal: 20 }}
         >
+            {tourGuide && <HomeTourGuideView />}
             <SafeAreaView className='w-screen relative'>
+
                 <View className="items-center justify-start w-screen h-full " >
                     <View className='w-full flex-row justify-center items-center'>
                         <TouchableOpacity onPress={() => handlePresentModalPress()} className='p-4  rounded-full absolute top-2 left-4 '>
@@ -104,12 +108,17 @@ const HomeScreen = () => {
                         </TouchableOpacity>
                         <Text className="text-lg text-black font-medium pt-6 pb-4">Home</Text>
 
-                        <TouchableOpacity onPress={handlePresentNotifications} className='p-4  rounded-full absolute top-2 right-4 '>
-                            <View className="relative">
-                                <FontAwesome5 name="bell" size={24} color="black" />
-                                {hasBadgeNotifications && <View className="h-3 w-3 bg-red-500 rounded-full border-[#f0f0f0] border-2 absolute top-0 right-0" />}
-                            </View>
-                        </TouchableOpacity>
+                        <View className='flex-row justify-center items-center absolute top-2 right-4 '>
+                            <TouchableOpacity onPress={() => setTourGuide(true)} className='p-4  rounded-full mr-2 '>
+                                <FontAwesome5 name="question-circle" size={24} color="black" />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handlePresentNotifications} className='p-4  rounded-full '>
+                                <View className="relative">
+                                    <FontAwesome5 name="bell" size={24} color="black" />
+                                    {hasBadgeNotifications && <View className="h-3 w-3 bg-red-500 rounded-full border-[#f0f0f0] border-2 absolute top-0 right-0" />}
+                                </View>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                     <View className="w-full ">
                         <ScrollView className="h-full">
@@ -129,8 +138,8 @@ const HomeScreen = () => {
                                         </View>
                                     )}
                                 </View>
-                                ):(
-                                    <View className='w-full h-80 justify-center items-center'>
+                                ) : (
+                                    <View className='w-full h-40 justify-center items-center'>
                                         <Text className='font-medium mb-4'>Let's get you some friends first</Text>
                                         <TouchableOpacity className='bg-main py-4 pr-6 pl-4 rounded-lg flex-row justify-center items-center' onPress={() => router.push("/(tabs)/friends")} >
                                             <Entypo name="plus" size={16} color="white" />
@@ -139,15 +148,17 @@ const HomeScreen = () => {
                                     </View>
                                 )}
                             </View>
-                            {!!friendsWithoutPlans.length && (
-                                <View className='p-4 '>
-                                    <Text className="font-medium text-xl pb-4">Friends Needing Reminders</Text>
-                                    {friendsWithoutPlans.map((friend) => (
-                                        <RemindFriendSection friend={friend} key={friend.id} />
-                                    ))}
+                            <View className='p-4 '>
+                                <Text className="font-medium text-xl pb-4">Friends Needing Reminders</Text>
+                                {!!friendsWithoutPlans.length ? friendsWithoutPlans.map((friend) => (
+                                    <RemindFriendSection friend={friend} key={friend.id} />
+                                )) : (
+                                    <View className='p-4 h-20 flex-row items-center justify-center w-full'>
+                                        <Text>No friends needing reminders... Yet.</Text>
+                                    </View>
+                                )}
 
-                                </View>
-                            )}
+                            </View>
                             <View className='w-full h-40' />
                         </ScrollView>
 

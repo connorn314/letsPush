@@ -14,8 +14,7 @@ import { useRouter } from "expo-router";
 const SingleOnboardingPage = ({ index, goNext }: { index: number, goNext: () => void }) => {
 
 
-    const { performOAuth, stravaRemoveAuthentication } = useAuth();
-
+    const { performOAuth,  } = useAuth();
     const router = useRouter();
 
     const [stravaAuthLoading,] = useAtom(stravaAuthLoadingState);
@@ -23,10 +22,10 @@ const SingleOnboardingPage = ({ index, goNext }: { index: number, goNext: () => 
 
     const [sending, setSending] = useState<null | string>(null);
 
-    const { makeEnablePushRequest } = usePushNotifications();
+    const { makeEnablePushRequest, expoPushToken } = usePushNotifications();
 
     const isReadyForNext = () => {
-        if (index === 0 && !user?.pushToken?.length) return false;
+        if (index === 0 && !expoPushToken) return false;
         if (index === 1 && !(user?.strava?.expires_at && (user?.strava?.expires_at > (Date.now() / 1000)))) return false;
         return true
     }
@@ -37,8 +36,6 @@ const SingleOnboardingPage = ({ index, goNext }: { index: number, goNext: () => 
             return
         }
     }
-
-    useEffect(() => console.log("index", index), [index])
 
     return (
         <View className={"w-screen h-full justify-center items-center "}>
@@ -59,7 +56,7 @@ const SingleOnboardingPage = ({ index, goNext }: { index: number, goNext: () => 
                             <Text className="text-center text-xl font-medium mb-2" >Enable notifications</Text>
                             <Text className="text-center text-lg leading-6" >Enable notifications to know when your friends complete or miss a workout. Stay connected and keep each other on track.</Text>
                         </View>
-                        {(user?.pushToken?.length > 0) ? (
+                        {expoPushToken ? (
                             <View className={`  h-[56px] rounded mb-2 w-full flex-row items-center justify-center `} >
                                 <Entypo name="check" size={18} color="black" />
                                 <Text className={` text-md font-semibold py-4 rounded-lg ml-2`}>Notifications Enabled</Text>

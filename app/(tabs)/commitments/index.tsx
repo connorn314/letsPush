@@ -1,4 +1,4 @@
-import { hasBadgeNotificationsState, lockPageOnCarousel, myWeekPlansState, myWorkoutsState, thisWeekPlanState } from "@/storage/atomStorage";
+import { hasBadgeNotificationsState, lockPageOnCarousel, myWeekPlansState, myWorkoutsState, thisWeekPlanState, tourGuideState } from "@/storage/atomStorage";
 import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useAtom } from "jotai";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,6 +16,7 @@ import * as Notifications from 'expo-notifications';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import CommitmentsTourGuideView from "@/components/commitmentsTourGuide";
 
 
 const WorkoutsPage = () => {
@@ -24,9 +25,9 @@ const WorkoutsPage = () => {
     const [workouts,] = useAtom(myWorkoutsState);
     const [weekPlans,] = useAtom(myWeekPlansState);
     const [thisWeekPlan] = useAtom(thisWeekPlanState);
-
     const [lockPage, setLockPage] = useAtom(lockPageOnCarousel);
     const [hasBadgeNotifications, setHasBadgeNotifications] = useAtom(hasBadgeNotificationsState);
+    const [tourGuide, ] = useAtom(tourGuideState);
 
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const notificationModalRef = useRef<BottomSheetModal>(null);
@@ -82,6 +83,7 @@ const WorkoutsPage = () => {
             start={{ x: 0.9, y: 1 }}
             style={{ height: "100%", width: "100%", alignItems: "center", justifyContent: "center", paddingHorizontal: 20 }}
         >
+            {tourGuide && <CommitmentsTourGuideView />}
             <SafeAreaView className={` transition-all duration-200 relative`}>
                 <View className='w-screen h-full justify-start items-center'>
                     <View className=' w-full flex-row justify-center items-center'>

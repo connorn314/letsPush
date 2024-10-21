@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { daysOfWeek, dayToSimpleString, generateTotalTime, metersToMiles, parsePace } from "@/util/helpers";
 import AnimatedBar from "./singleBar";
@@ -106,7 +106,8 @@ const WeeklyCommitmentsDisplay = ({
         }
     }, [friends])
 
-    const start = weekPlanData.start.split("/")
+    const start = weekPlanData.start.split("/");
+
 
     return (
         <View className=" justify-center items-center p-4 w-full">
@@ -121,9 +122,19 @@ const WeeklyCommitmentsDisplay = ({
             }} className=" w-full rounded-2xl bg-white shadow-sm justify-center items-center p-4">
                 <View className='flex-row w-full justify-start items-center'>
                     {/* <View className={`rounded-full justify-center items-center h-16 w-16 ${commitment.status === "complete" ? "bg-green-300" : (commitment.status === "failure" ? "bg-red-400" : "bg-slate-200")}`}> */}
-                    <View className={`rounded-full justify-center items-center h-12 w-12 bg-main`}>
-                        <Text className={`text-xl font-semibold text-center text-white `}>{(personal && user.name) ? user.name[0]?.toLocaleUpperCase()  : author?.name[0]?.toLocaleUpperCase() ?? "N"}</Text>
-                    </View>
+                    {author?.profile_image_url ? (
+                        <Image source={{ uri: author?.profile_image_url }} className="w-12 h-12 "
+                        style={{
+                            borderBottomLeftRadius: 5,
+                            borderBottomRightRadius: 5,
+                            borderTopLeftRadius: 5,
+                            borderTopRightRadius: 5,
+                        }} resizeMode={"cover"} />
+                    ) : (
+                        <View className={`rounded-[5px] justify-center items-center h-12 w-12 bg-main`}>
+                            <Text className={`text-xl font-semibold text-center text-white `}>{(personal && user.name) ? user.name[0]?.toLocaleUpperCase()  : author?.name[0]?.toLocaleUpperCase() ?? "N"}</Text>
+                        </View>
+                    )}
                     <View className="ml-2">
                         <Text className="text-lg font-medium">{personal ? "Me" : author?.name ?? "New User"}</Text>
                         <Text className='text-sm h-6 '>Commitments {getDateAbrv(weekPlanData.start)} - {getDateAbrv(weekPlanData.end)}</Text>

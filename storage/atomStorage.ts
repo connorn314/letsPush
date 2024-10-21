@@ -5,6 +5,7 @@ import { User } from "../types/user";
 import { MyPushNotification } from "@/types/Push";
 
 export const userState = atom<any>(undefined);
+export const tourGuideState = atom<boolean>(false);
 export const myPushNotificationsState = atom<MyPushNotification[]>([])
 export const myWorkoutsState = atom<Workout[]>([]);
 export const myWeekPlansState = atom<WeekOfCommitments[]>([]);
